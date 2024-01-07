@@ -1,3 +1,0 @@
-[submodule "lib/lcdgfx"]
-	path = lib/lcdgfx
-	url = git@github.com:lexus2k/lcdgfx.git
