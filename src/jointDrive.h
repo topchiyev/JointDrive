@@ -1,16 +1,23 @@
 #ifndef JOINT_DRIVE_H
-#define JOINT_DRIVE_H
+#define JOINT_DRIVE_H 1
 
-#include "lcdgfx.h"
+#include "Canvas.h"
+#include "State.h"
+#include "Storage.h"
+#include "Images.h"
 
 class JointDrive
 {
-    private:
-        DisplaySSD1306_128x64_I2C canvas;
-
     public:
-        JointDrive();
-        void Refresh() const;
+        explicit JointDrive();
+        void Refresh();
+        Canvas * GetCanvas();
+        JointDriveState * GetState();
+
+    private:
+        Storage storage;
+        JointDriveState state;
+        Canvas canvas;
 };
 
 #endif
