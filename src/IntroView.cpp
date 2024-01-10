@@ -8,13 +8,21 @@
 IntroView::IntroView(JointDrive *jointDrive)
 {
     this->jointDrive = jointDrive;
+    uint32_t curTime = millis();
+    this->hideTime = curTime + HIDE_INFO_AFTER;
 };
+
+void IntroView::Update(uint32_t time)
+{
+    if (time >= this->hideTime)
+        this->jointDrive->GoToMainView();
+}
 
 void IntroView::Draw()
 {
     Canvas * canvas = this->jointDrive->GetCanvas();
 
-    canvas->AddImage(0, 0, &INTRO);
+    canvas->AddImage(0, 0, &IMG_INTRO);
     canvas->AddText(69, 52, 53, "VERSION", WHITE, X1, REGULAR, LEFT);
     canvas->AddText(69, 52, 53, JOINT_DRIVE_VERSION, WHITE, X1, REGULAR, RIGHT);
 };

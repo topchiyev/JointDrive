@@ -21,12 +21,12 @@ void Canvas::AddImage(uint16_t x, uint16_t y, const Image * image)
     ssd1306_drawBitmap(x, y, image->width, image->height, image->img);
 }
 
-void Canvas::AddText(uint16_t x, uint16_t y, uint16_t width, const char *text, Color fill, FontSize size, FontStyle style, Align align)
+void Canvas::AddText(uint16_t x, uint16_t y, uint16_t width, String text, Color fill, FontSize size, FontStyle style, Align align)
 {
     EFontStyle estyle = (EFontStyle)style;
     uint16_t x2 = x;
     uint16_t width2 = 0;
-    for (int i = 0; i < strlen(text); i++)
+    for (int i = 0; i < text.length(); i++)
     {
         uint16_t unicode = ssd1306_unicode16FromUtf8(text[i]);
         SCharInfo charInfo;
@@ -43,6 +43,10 @@ void Canvas::AddText(uint16_t x, uint16_t y, uint16_t width, const char *text, C
         x2 = x + (width - width2) / 2;
     }
 
+    int charsLen = text.length() + 1;
+    char chars[charsLen];
+    text.toCharArray(chars, charsLen);
+
     ssd1306_setColor(fill);
-    ssd1306_printFixedN(x2, y, text, estyle, size);
+    ssd1306_printFixedN(x2, y, chars, estyle, size);
 }

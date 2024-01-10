@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "Image.h"
 
-PROGMEM const Image ADJUST_BTN_SELECTED =
+PROGMEM const Image IMG_ADJUST_BTN_SELECTED =
 {
     18, 10, 8,
     new uint8_t[180]
@@ -24,7 +24,7 @@ PROGMEM const Image ADJUST_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image ADJUST_BTN_UNSELECTED =
+PROGMEM const Image IMG_ADJUST_BTN_UNSELECTED =
 {
     18, 10, 8,
     new uint8_t[180]
@@ -44,7 +44,7 @@ PROGMEM const Image ADJUST_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image BACK_BTN_SELECTED =
+PROGMEM const Image IMG_BACK_BTN_SELECTED =
 {
     10, 10, 8, new uint8_t [100]
     {
@@ -58,7 +58,7 @@ PROGMEM const Image BACK_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image BACK_BTN_UNSELECTED =
+PROGMEM const Image IMG_BACK_BTN_UNSELECTED =
 {
     10, 10, 8, new uint8_t [100]
     {
@@ -72,7 +72,7 @@ PROGMEM const Image BACK_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image CANCEL_BTN_SELECTED =
+PROGMEM const Image IMG_CANCEL_BTN_SELECTED =
 {
     33, 10, 8, new uint8_t [330]
     {
@@ -100,7 +100,7 @@ PROGMEM const Image CANCEL_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image CANCEL_BTN_UNSELECTED =
+PROGMEM const Image IMG_CANCEL_BTN_UNSELECTED =
 {
     33, 10, 8, new uint8_t [330]
     {
@@ -128,7 +128,7 @@ PROGMEM const Image CANCEL_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image FEED_BTN_SELECTED =
+PROGMEM const Image IMG_FEED_BTN_SELECTED =
 {
     23, 10, 8, new uint8_t [230]
     {
@@ -150,7 +150,7 @@ PROGMEM const Image FEED_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image FEED_BTN_UNSELECTED =
+PROGMEM const Image IMG_FEED_BTN_UNSELECTED =
 {
     23, 10, 8, new uint8_t [230]
     {
@@ -172,7 +172,7 @@ PROGMEM const Image FEED_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image LOAD_BTN_SELECTED =
+PROGMEM const Image IMG_LOAD_BTN_SELECTED =
 {
     23, 10, 8, new uint8_t [230]
     {
@@ -194,7 +194,7 @@ PROGMEM const Image LOAD_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image LOAD_BTN_UNSELECTED =
+PROGMEM const Image IMG_LOAD_BTN_UNSELECTED =
 {
     23, 10, 8, new uint8_t [230]
     {
@@ -216,7 +216,7 @@ PROGMEM const Image LOAD_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image PORT_EMPTY = 
+PROGMEM const Image IMG_PORT_EMPTY = 
 {
     20, 20, 8, new uint8_t [400]
     {
@@ -248,7 +248,7 @@ PROGMEM const Image PORT_EMPTY =
     }
 };
 
-PROGMEM const Image PORT_FEEDING =
+PROGMEM const Image IMG_PORT_FEEDING =
 {
     20, 20, 8, new uint8_t [400]
     {
@@ -280,7 +280,7 @@ PROGMEM const Image PORT_FEEDING =
     }
 };
 
-PROGMEM const Image PORT_LOADED =
+PROGMEM const Image IMG_PORT_LOADED =
 {
     20, 20, 8, new uint8_t [400]
     {
@@ -312,7 +312,7 @@ PROGMEM const Image PORT_LOADED =
     }
 };
 
-PROGMEM const Image PORT_LOADING =
+PROGMEM const Image IMG_PORT_LOADING =
 {
     20, 20, 8, new uint8_t [400]
     {
@@ -344,7 +344,7 @@ PROGMEM const Image PORT_LOADING =
     }
 };
 
-PROGMEM const Image PORTS_BTN_SELECTED =
+PROGMEM const Image IMG_PORTS_BTN_SELECTED =
 {
     13, 10, 8, new uint8_t [130]
     {
@@ -360,7 +360,7 @@ PROGMEM const Image PORTS_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image PORTS_BTN_UNSELECTED =
+PROGMEM const Image IMG_PORTS_BTN_UNSELECTED =
 {
     13, 10, 8, new uint8_t [130]
     {
@@ -376,7 +376,7 @@ PROGMEM const Image PORTS_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image PULL_BTN_SELECTED =
+PROGMEM const Image IMG_PULL_BTN_SELECTED =
 {
     23, 10, 8, new uint8_t [230]
     {
@@ -398,7 +398,7 @@ PROGMEM const Image PULL_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image PULL_BTN_UNSELECTED =
+PROGMEM const Image IMG_PULL_BTN_UNSELECTED =
 {
     23, 10, 8, new uint8_t [230]
     {
@@ -420,7 +420,7 @@ PROGMEM const Image PULL_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image RESET_BTN_SELECTED =
+PROGMEM const Image IMG_RESET_BTN_SELECTED =
 {
     27, 10, 8, new uint8_t [270]
     {
@@ -444,7 +444,7 @@ PROGMEM const Image RESET_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image RESET_BTN_UNSELECTED =
+PROGMEM const Image IMG_RESET_BTN_UNSELECTED =
 {
     27, 10, 8, new uint8_t [270]
     {
@@ -468,7 +468,7 @@ PROGMEM const Image RESET_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image SAVE_BTN_SELECTED =
+PROGMEM const Image IMG_SAVE_BTN_SELECTED =
 {
     22, 10, 8, new uint8_t [220]
     {
@@ -489,7 +489,7 @@ PROGMEM const Image SAVE_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image SAVE_BTN_UNSELECTED =
+PROGMEM const Image IMG_SAVE_BTN_UNSELECTED =
 {
     22, 10, 8, new uint8_t [220]
     {
@@ -510,7 +510,7 @@ PROGMEM const Image SAVE_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image  SETTINGS_BTN_SELECTED =
+PROGMEM const Image IMG_SETTINGS_BTN_SELECTED =
 {
     12, 10, 8, new uint8_t [120]
     {
@@ -525,7 +525,7 @@ PROGMEM const Image  SETTINGS_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image SETTINGS_BTN_UNSELECTED =
+PROGMEM const Image IMG_SETTINGS_BTN_UNSELECTED =
 {
     12, 10, 8, new uint8_t [120]
     {
@@ -540,7 +540,7 @@ PROGMEM const Image SETTINGS_BTN_UNSELECTED =
     }
 };
 
-PROGMEM const Image UNLOAD_BTN_SELECTED =
+PROGMEM const Image IMG_UNLOAD_BTN_SELECTED =
 {
     33, 10, 8, new uint8_t [330]
     {
@@ -568,7 +568,7 @@ PROGMEM const Image UNLOAD_BTN_SELECTED =
     }
 };
 
-PROGMEM const Image UNLOAD_BTN_UNSELECTED =
+PROGMEM const Image IMG_UNLOAD_BTN_UNSELECTED =
 {
     33, 10, 8, new uint8_t [330]
     {
@@ -598,7 +598,7 @@ PROGMEM const Image UNLOAD_BTN_UNSELECTED =
 
 
 
-PROGMEM const Image PORT_NUMBER_1_SELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_1_SELECTED =
 {
     20, 8, 8, new uint8_t [160]
     {
@@ -615,7 +615,7 @@ PROGMEM const Image PORT_NUMBER_1_SELECTED =
     }
 };
 
-PROGMEM const Image PORT_NUMBER_1_UNSELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_1_UNSELECTED =
 {
     20, 8, 8, new uint8_t [160]
     {
@@ -632,7 +632,7 @@ PROGMEM const Image PORT_NUMBER_1_UNSELECTED =
     }
 };
 
-PROGMEM const Image PORT_NUMBER_2_SELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_2_SELECTED =
 {
     20, 8, 8, new uint8_t [160]
     {
@@ -649,7 +649,7 @@ PROGMEM const Image PORT_NUMBER_2_SELECTED =
     }
 };
 
-PROGMEM const Image PORT_NUMBER_2_UNSELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_2_UNSELECTED =
 {
     20, 8, 8, new uint8_t[160]
     {
@@ -666,7 +666,7 @@ PROGMEM const Image PORT_NUMBER_2_UNSELECTED =
     }
 };
 
-PROGMEM const Image PORT_NUMBER_3_SELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_3_SELECTED =
 {
     20, 8, 8, new uint8_t[160]
     {
@@ -683,7 +683,7 @@ PROGMEM const Image PORT_NUMBER_3_SELECTED =
     }
 };
 
-PROGMEM const Image PORT_NUMBER_3_UNSELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_3_UNSELECTED =
 {
     20, 8, 8, new uint8_t [160]
     {
@@ -700,7 +700,7 @@ PROGMEM const Image PORT_NUMBER_3_UNSELECTED =
     }
 };
 
-PROGMEM const Image PORT_NUMBER_4_SELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_4_SELECTED =
 {
     20, 8, 8, new uint8_t [160]
     {
@@ -717,7 +717,7 @@ PROGMEM const Image PORT_NUMBER_4_SELECTED =
     }
 };
 
-PROGMEM const Image PORT_NUMBER_4_UNSELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_4_UNSELECTED =
 {
     20, 8, 8, new uint8_t [160]
     {
@@ -734,7 +734,7 @@ PROGMEM const Image PORT_NUMBER_4_UNSELECTED =
     }
 };
 
-PROGMEM const Image PORT_NUMBER_5_SELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_5_SELECTED =
 {
     20, 8, 8, new uint8_t [160]
     {
@@ -750,7 +750,7 @@ PROGMEM const Image PORT_NUMBER_5_SELECTED =
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
     }
 };
-PROGMEM const Image PORT_NUMBER_5_UNSELECTED =
+PROGMEM const Image IMG_PORT_NUMBER_5_UNSELECTED =
 {
     20, 8, 8, new uint8_t [160]
     {
@@ -769,7 +769,7 @@ PROGMEM const Image PORT_NUMBER_5_UNSELECTED =
 
 
 
-PROGMEM const Image INTRO =
+PROGMEM const Image IMG_INTRO =
 {
     128, 64, 8, new uint8_t [8192]
     {
