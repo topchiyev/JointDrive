@@ -32,6 +32,8 @@ const Image * MainView::GetPortIcon(PortStatus status, bool isSelected)
                 return &IMG_PORT_FEEDING;
             else
                 return &IMG_PORT_LOADED;
+        case FEEDING:
+            return &IMG_PORT_FEEDING;
     }
 
     return nullptr;
