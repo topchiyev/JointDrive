@@ -1,7 +1,7 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include <cstdint>
+#include <stdint.h>
 
 enum PortStatus
 {

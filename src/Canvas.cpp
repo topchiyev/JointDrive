@@ -26,7 +26,7 @@ void Canvas::AddText(uint16_t x, uint16_t y, uint16_t width, String text, Color 
     EFontStyle estyle = (EFontStyle)style;
     uint16_t x2 = x;
     uint16_t width2 = 0;
-    for (int i = 0; i < text.length(); i++)
+    for (unsigned int i = 0; i < text.length(); i++)
     {
         uint16_t unicode = ssd1306_unicode16FromUtf8(text[i]);
         SCharInfo charInfo;

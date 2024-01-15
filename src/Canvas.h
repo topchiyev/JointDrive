@@ -1,7 +1,7 @@
 #ifndef CANVAS_H
 #define CANVAS_H 1
 
-#include <string>
+#include "string.h"
 #include "ssd1306.h"
 #include "Color.h"
 #include "Align.h"

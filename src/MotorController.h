@@ -1,7 +1,7 @@
 #ifndef MOTOR_CONTROLLER
 #define MOTOR_CONTROLLER
 
-#include <cstdint>
+#include "stdint.h"
 #include "Direction.h"
 
 class MotorControllerDelegate
