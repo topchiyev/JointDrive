@@ -11,19 +11,19 @@ void SettingsView::Draw()
 {
     Canvas * canvas = this->jointDrive->GetCanvas();
 
-    canvas->AddText(2, -3, 128-4, "SETTINGS", WHITE, X2, REGULAR, CENTER);
-    canvas->AddRect(1, 13, 128-1, 14, WHITE);
-    canvas->AddText(2, 19, 128-4, "DISTANCE TO EXTRUDER", WHITE, X2, REGULAR, LEFT);
+    canvas->AddText(2, -3, 128-4, "SETTINGS", C_WHITE, FS_X2, A_CENTER);
+    canvas->AddRect(1, 13, 128-1, 14, C_WHITE);
+    canvas->AddText(2, 19, 128-4, "DISTANCE TO EXTRUDER", C_WHITE, FS_X2, A_LEFT);
     
     if (this->selectedButton == SVB_DISTANCE && (!this->jointDrive->isBlink || !this->isInput))
     {
-        canvas->AddRect(2, 32, 2 + 40, 33 + 12, WHITE);
-        canvas->AddText(3, 29, 36, "" + this->distance, BLACK, X2, REGULAR, LEFT);
+        canvas->AddRect(2, 32, 2 + 40, 33 + 12, C_WHITE);
+        canvas->AddText(3, 29, 36, "" + this->distance, C_BLACK, FS_X2, A_LEFT);
     }
     else
     {
-        canvas->AddText(3, 29, 36, "" + this->distance, WHITE, X2, REGULAR, LEFT);
-        canvas->AddRect(2, 45, 2 + 40, 45+1, WHITE);
+        canvas->AddText(3, 29, 36, "" + this->distance, C_WHITE, FS_X2, A_LEFT);
+        canvas->AddRect(2, 45, 2 + 40, 45+1, C_WHITE);
     }
 
     if (this->selectedButton == SVB_BACK)

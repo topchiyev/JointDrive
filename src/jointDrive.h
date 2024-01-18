@@ -3,9 +3,6 @@
 
 #include "Canvas.h"
 #include "State.h"
-#include "Storage.h"
-#include "Direction.h"
-#include "View.h"
 #include "MotorController.h"
 
 class JointDrive: public MotorControllerDelegate
@@ -38,13 +35,6 @@ class JointDrive: public MotorControllerDelegate
         void OnMotorControllerFinish(uint16_t portIndex);
 
     private:
-        Storage storage;
-        JointDriveState state;
-        Canvas canvas;
-        MotorController motorController;
-        View * currentView = nullptr;
-        const uint32_t blinkInterval = 100;
-        uint32_t blinkChangeTime = 0;
         void Update();
         void Draw();
 };

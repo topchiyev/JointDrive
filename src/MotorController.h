@@ -1,7 +1,7 @@
 #ifndef MOTOR_CONTROLLER
 #define MOTOR_CONTROLLER
 
-#include "stdint.h"
+#include <stdint.h>
 #include "Direction.h"
 
 class MotorControllerDelegate
@@ -25,7 +25,7 @@ class MotorController
         bool isIdle = true;
         uint16_t portIndex = 0;
         uint16_t speed = 0;
-        Direction direction = FORWARD;
+        Direction direction = D_FORWARD;
         uint16_t distance = 0;
         uint16_t pastDistance = 0;
         uint16_t frequency = 100;

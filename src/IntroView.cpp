@@ -23,6 +23,6 @@ void IntroView::Draw()
     Canvas * canvas = this->jointDrive->GetCanvas();
 
     canvas->AddImage(0, 0, &IMG_INTRO);
-    canvas->AddText(69, 52, 53, "VERSION", WHITE, X1, REGULAR, LEFT);
-    canvas->AddText(69, 52, 53, JOINT_DRIVE_VERSION, WHITE, X1, REGULAR, RIGHT);
+    canvas->AddText(69, 52, 53, "VERSION", C_WHITE, FS_X1, A_LEFT);
+    canvas->AddText(69, 52, 53, JOINT_DRIVE_VERSION, C_WHITE, FS_X1, A_RIGHT);
 };

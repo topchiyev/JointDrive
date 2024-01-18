@@ -1,14 +1,24 @@
-// #include <iostream.h>
 #include "JointDrive.h"
+#include "Storage.h"
+#include "Direction.h"
+#include "View.h"
 #include "IntroView.h"
 #include "MainView.h"
 #include "SettingsView.h"
 #include "PortsView.h"
 #include "PortAdjustView.h"
 
+Storage storage;
+JointDriveState state;
+Canvas canvas;
+MotorController motorController;
+View * currentView = nullptr;
+const uint32_t blinkInterval = 100;
+uint32_t blinkChangeTime = 0;
+
 JointDrive::JointDrive()
 {
-    JointDriveState state = this->storage.GetState();
+    state = storage.GetState();
     if (!state.isInitialized)
     {
         state.feedingDistance = 100;
@@ -18,8 +28,8 @@ JointDrive::JointDrive()
         state.ports[3].index = 4;
         state.ports[4].index = 5;
         state.isInitialized = true;
-        this->storage.SetState(state);
-        this->state = state;
+        storage.SetState(state);
+        state = state;
     }
 
     this->GoToIntroView();
@@ -27,12 +37,12 @@ JointDrive::JointDrive()
 
 Canvas * JointDrive::GetCanvas()
 {
-    return &this->canvas;
+    return &canvas;
 }
 
 JointDriveState * JointDrive::GetState()
 {
-    return &this->state;
+    return &state;
 }
 
 uint32_t JointDrive::GetFeedingDistance()
@@ -42,8 +52,8 @@ uint32_t JointDrive::GetFeedingDistance()
 
 void JointDrive::SetFeedingDistance(uint32_t value)
 {
-    this->state.feedingDistance = value;
-    this->storage.SetState(this->state);
+    state.feedingDistance = value;
+    storage.SetState(state);
 }
 
 uint32_t JointDrive::GetLoadedDistance()
@@ -55,10 +65,10 @@ PortState * JointDrive::GetPort(uint16_t portIndex)
 {
     for (size_t i = 0; i < 5; i++)
     {
-        PortState port = this->state.ports[i];
+        PortState port = state.ports[i];
         if (port.index == portIndex)
         {
-            return &this->state.ports[i];
+            return &state.ports[i];
         }
     }
     
@@ -88,61 +98,63 @@ void JointDrive::Refresh()
 void JointDrive::Update()
 {
     uint32_t curTime = millis();
-    if (curTime > this->blinkChangeTime)
+    if (curTime > blinkChangeTime)
     {
         this->isBlink = !this->isBlink;
-        this->blinkChangeTime = curTime + this->blinkInterval;
+        blinkChangeTime = curTime + blinkInterval;
     }
 
-    this->currentView->Update(curTime);    
-    this->motorController.Update(curTime);
+    currentView->Update(curTime);    
+    motorController.Update(curTime);
 }
 
 void JointDrive::Draw()
 {
-    this->canvas.Clear();
-    this->currentView->Draw();
+    canvas.Clear();
+    if (currentView != nullptr)
+        currentView->Draw();
+    canvas.Draw();
 }
 
 
 void JointDrive::GoToIntroView()
 {
-    if (this->currentView != nullptr)
-        delete this->currentView;
+    if (currentView != nullptr)
+        delete currentView;
 
-    this->currentView = new IntroView(this);
+    currentView = new IntroView(this);
 }
 
 void JointDrive::GoToMainView()
 {
-    if (this->currentView != nullptr)
-        delete this->currentView;
+    if (currentView != nullptr)
+        delete currentView;
 
-    this->currentView = new MainView(this);
+    currentView = new MainView(this);
 }
 
 void JointDrive::GoToSettingsView()
 {
-    if (this->currentView != nullptr)
-        delete this->currentView;
+    if (currentView != nullptr)
+        delete currentView;
 
-    this->currentView = new SettingsView(this);
+    currentView = new SettingsView(this);
 }
 
 void JointDrive::GoToPortsView(uint16_t portIndex)
 {
-    if (this->currentView != nullptr)
-        delete this->currentView;
+    if (currentView != nullptr)
+        delete currentView;
 
-    this->currentView = new PortsView(this, portIndex);
+    currentView = new PortsView(this, portIndex);
 }
 
 void JointDrive::GoToPortAdjustView(uint16_t portIndex)
 {
-    if (this->currentView != nullptr)
-        delete this->currentView;
+    if (currentView != nullptr)
+        delete currentView;
 
-    this->currentView = new PortAdjustView(this, portIndex);
+    currentView = new PortAdjustView(this, portIndex);
 }
 
 
@@ -162,14 +174,14 @@ void JointDrive::LoadPort(uint16_t portIndex)
         
     port->status = LOADING;
 
-    if (this->currentView->viewType == V_PORTS)
-        this->currentView->PortChanged();
+    if (currentView->viewType == V_PORTS)
+        currentView->PortChanged();
         
     uint32_t dist = this->GetLoadedDistance();
     if (port->filamentPosition > 0)
         dist -= port->filamentPosition;
     
-    this->motorController.MoveFilament(port->index, 1, FORWARD, dist, this);
+    motorController.MoveFilament(port->index, 1, D_FORWARD, dist, this);
 }
 
 void JointDrive::UnloadPort(uint16_t portIndex)

@@ -42,7 +42,7 @@ void MotorController::Update(uint32_t time)
 void MotorController::MakeMovement()
 {
     int32_t multiplier = 1;
-    if (this->direction == BACKWARD)
+    if (this->direction == D_BACKWARD)
         multiplier = -1;
         
     int32_t value = this->speed * multiplier;

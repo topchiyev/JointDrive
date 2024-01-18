@@ -3,10 +3,10 @@
 
 enum FontSize
 {
-    X1 = 0,
-    X2 = 1,
-    X4 = 2,
-    X8 = 3,
+    FS_X1 = 1,
+    FS_X2 = 2,
+    FS_X4 = 3,
+    FS_X8 = 4,
 };
 
 #endif

@@ -1,52 +1,59 @@
 #include "Canvas.h"
+#include <Adafruit_PCD8544.h>
+
+#define PIN_RST 2
+#define PIN_CE 3
+#define PIN_DC 4
+#define PIN_DIN 5
+#define PIN_CLK 6
+
+Adafruit_PCD8544 display = Adafruit_PCD8544(PIN_CLK, PIN_DIN, PIN_DC, PIN_CE, PIN_RST);
 
 Canvas::Canvas()
 {
-    ssd1306_128x64_i2c_init();
+    display.begin();
+    display.setContrast(60);
+    display.clearDisplay();
+    display.display();
 }
 
 void Canvas::Clear()
 {
-    ssd1306_clearScreen();
+    display.clearDisplay();
 }
 
 void Canvas::AddRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, Color fill)
 {
-    ssd1306_setColor(fill);
-    ssd1306_drawRect(x1, y1, x2, y2);
+    display.fillRect(x1, y1, x2-x1, y2-y1, fill);
 }
 
 void Canvas::AddImage(uint16_t x, uint16_t y, const Image * image)
 {
-    ssd1306_drawBitmap(x, y, image->width, image->height, image->img);
+    display.drawBitmap(x, y, image->img, image->width, image->height, C_BLACK);
 }
 
-void Canvas::AddText(uint16_t x, uint16_t y, uint16_t width, String text, Color fill, FontSize size, FontStyle style, Align align)
+void Canvas::AddText(uint16_t x, uint16_t y, uint16_t width, String text, Color fill, FontSize size, Align align)
 {
-    EFontStyle estyle = (EFontStyle)style;
-    uint16_t x2 = x;
+    int16_t x2 = 0;
+    int16_t y2= 0;
     uint16_t width2 = 0;
-    for (unsigned int i = 0; i < text.length(); i++)
-    {
-        uint16_t unicode = ssd1306_unicode16FromUtf8(text[i]);
-        SCharInfo charInfo;
-        ssd1306_getCharBitmap(unicode, &charInfo);
-        width2 += charInfo.width;
-    }
+    uint16_t height2 = 0;
 
-    if (align == RIGHT)
+    display.setTextColor(fill);
+    display.setTextSize(size);
+    display.getTextBounds(text, x, y, &x2, &y2, &width2, &height2);
+
+    if (align == A_RIGHT)
     {
         x2 = x + width - width2;
     }
-    else if (align == CENTER)
+    else if (align == A_CENTER)
     {
         x2 = x + (width - width2) / 2;
     }
+}
 
-    int charsLen = text.length() + 1;
-    char chars[charsLen];
-    text.toCharArray(chars, charsLen);
-
-    ssd1306_setColor(fill);
-    ssd1306_printFixedN(x2, y, chars, estyle, size);
+void Canvas::Draw()
+{
+    display.display();
 }

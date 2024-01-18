@@ -4,5 +4,6 @@
         "compare": "cpp",
         "string": "cpp",
         "cstdint": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/Users/topchiyev/3D Print/JointDrive/Firmware/JointDrive/.pio/libdeps/nucleo_g0b1re/Adafruit BusIO"
 }

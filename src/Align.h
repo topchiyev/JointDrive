@@ -3,9 +3,9 @@
 
 enum Align
 {
-    LEFT = 0,
-    CENTER = 1,
-    RIGHT = 2,
+    A_LEFT = 0,
+    A_CENTER = 1,
+    A_RIGHT = 2,
 };
 
 #endif

@@ -1,7 +1,6 @@
 #include "MainView.h"
 #include "Color.h"
 #include "State.h"
-#include "FontStyle.h"
 #include "FontSize.h"
 #include "Align.h"
 #include "Images.h"
@@ -107,7 +106,7 @@ void MainView::Draw()
         else
             canvas->AddImage(114, 52, &IMG_SETTINGS_BTN_UNSELECTED);
             
-        canvas->AddText(0, 42, 128, this->GetActivity(), WHITE, X1, REGULAR, CENTER);
+        canvas->AddText(0, 42, 128, this->GetActivity(), C_WHITE, FS_X1, A_CENTER);
     }
 }
 
