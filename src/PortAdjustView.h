@@ -1,7 +1,6 @@
 #ifndef PORT_ADJUST_VIEW_H
 #define PORT_ADJUST_VIEW_H
 
-#include "View.h"
 #include "JointDrive.h"
 #include "State.h"
 
@@ -11,12 +10,11 @@ enum PortAdjustViewButton
     PAVB_POSITION = 1,
 };
 
-class PortAdjustView: public View
+class PortAdjustView
 {
     public:
-        PortAdjustView(JointDrive * jointDrive, uint16_t portIndex);
-        ViewType viewType = V_PORT_ADJUST;
-        void Draw();
+        void Begin(JointDrive * jointDrive, uint16_t portIndex);
+        void Draw(Canvas * canvas);
         void LeftBtnClick();
         void RightBtnClick();
         void ActionBtnClick();

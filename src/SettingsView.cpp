@@ -1,16 +1,14 @@
 #include "SettingsView.h"
 #include "Images.h"
 
-SettingsView::SettingsView(JointDrive * jointDrive)
+void SettingsView::Begin(JointDrive * jointDrive)
 {
     this->jointDrive = jointDrive;
     this->distance = jointDrive->GetFeedingDistance();
 }
 
-void SettingsView::Draw()
+void SettingsView::Draw(Canvas * canvas)
 {
-    Canvas * canvas = this->jointDrive->GetCanvas();
-
     canvas->AddText(2, -3, 128-4, "SETTINGS", C_WHITE, FS_X2, A_CENTER);
     canvas->AddRect(1, 13, 128-1, 14, C_WHITE);
     canvas->AddText(2, 19, 128-4, "DISTANCE TO EXTRUDER", C_WHITE, FS_X2, A_LEFT);

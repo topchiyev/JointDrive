@@ -1,7 +1,6 @@
 #ifndef SETTINGS_VIEW_H
 #define SETTINGS_VIEW_H
 
-#include "View.h"
 #include "JointDrive.h"
 
 enum SettingsViewButton
@@ -12,12 +11,11 @@ enum SettingsViewButton
     SVB_SAVE = 3,
 };
 
-class SettingsView: public View
+class SettingsView
 {
     public:
-        SettingsView(JointDrive * jointDrive);
-        ViewType viewType = V_SETTINGS;
-        void Draw();
+        void Begin(JointDrive * jointDrive);
+        void Draw(Canvas * canvas);
         void LeftBtnClick();
         void RightBtnClick();
         void ActionBtnClick();

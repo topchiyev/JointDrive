@@ -9,7 +9,7 @@ const int JOINT_DRIVE_STORAGE_EEPROM_KEY = 0x00;
 class Storage
 {
     public:
-        explicit Storage();
+        void Begin();
         JointDriveState GetState();
         void SetState(JointDriveState state);
         void ClearState();

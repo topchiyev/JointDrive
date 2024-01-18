@@ -2,7 +2,7 @@
 #include "Images.h"
 #include "Direction.h"
 
-PortAdjustView::PortAdjustView(JointDrive * jointDrive, uint16_t portIndex)
+void PortAdjustView::Begin(JointDrive * jointDrive, uint16_t portIndex)
 {
     this->jointDrive = jointDrive;
     this->portIndex = portIndex;
@@ -13,10 +13,8 @@ PortState * PortAdjustView::GetPort()
     return this->jointDrive->GetPort(this->portIndex);
 }
 
-void PortAdjustView::Draw()
+void PortAdjustView::Draw(Canvas * canvas)
 {
-    Canvas * canvas = this->jointDrive->GetCanvas();
-
     canvas->AddText(2, -3, 128-4, "PORT " + this->portIndex, C_WHITE, FS_X2, A_CENTER);
     canvas->AddRect(1, 13, 128-1, 14, C_WHITE);
     canvas->AddText(2, 19, 128-4, "ADJUST FILAMENT POSITION", C_WHITE, FS_X1, A_LEFT);

@@ -1,6 +1,6 @@
 #include "Storage.h"
 
-Storage::Storage()
+void Storage::Begin()
 {
     EEPROM.begin();
 }

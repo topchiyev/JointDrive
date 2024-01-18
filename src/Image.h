@@ -5,10 +5,9 @@
 
 struct Image
 {
-    uint16_t   width;
-    uint16_t   height;
-    uint16_t   bitDepth;
-    uint8_t  * img;
+    uint16_t  width;
+    uint16_t  height;
+    uint8_t * img;
 };
 
 #endif

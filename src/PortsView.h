@@ -1,7 +1,6 @@
 #ifndef PORTS_VIEW
 #define PORTS_VIEW
 
-#include "View.h"
 #include "JointDrive.h"
 
 enum PortsViewButton
@@ -16,15 +15,15 @@ enum PortsViewButton
     PVB_ADJUST = 10,
 };
 
-class PortsView: public View
+class PortsView
 {
     public:
-        PortsView(JointDrive * jointDrive, uint16_t portIndex = 1);
-        ViewType viewType = V_PORTS;
-        void Draw();
+        void Begin(JointDrive * jointDrive, uint16_t portIndex = 1);
+        void Draw(Canvas * canvas);
         void LeftBtnClick();
         void RightBtnClick();
         void ActionBtnClick();
+        void PortChanged();
 
     private:
         JointDrive * jointDrive;
@@ -33,7 +32,6 @@ class PortsView: public View
         bool isInput = false;
         PortsViewButton * activeButtons;
         uint16_t activeButtonsLen;
-        void PortChanged();
         PortState * GetPort();
         bool IsButtonActive(PortsViewButton btn);
 };

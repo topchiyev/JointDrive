@@ -1,6 +1,6 @@
 #include "PortsView.h"
 
-PortsView::PortsView(JointDrive * jointDrive, uint16_t portIndex)
+void PortsView::Begin(JointDrive * jointDrive, uint16_t portIndex)
 {
     this->jointDrive = jointDrive;
     this->selectedPortIndex = portIndex;
@@ -52,7 +52,7 @@ void PortsView::PortChanged()
         this->selectedButton = this->activeButtons[0];
 }
 
-void PortsView::Draw()
+void PortsView::Draw(Canvas * canvas)
 {
 
 }

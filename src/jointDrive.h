@@ -9,7 +9,7 @@ class JointDrive: public MotorControllerDelegate
 {
     public:
         bool isBlink = false;
-        explicit JointDrive();
+        void Begin();
         JointDriveState * GetState();
         Canvas * GetCanvas();
         uint32_t GetFeedingDistance();

@@ -5,7 +5,7 @@
 #include "Align.h"
 #include "Images.h"
 
-MainView::MainView(JointDrive * jointDrive)
+void MainView::Begin(JointDrive * jointDrive)
 {
     this->jointDrive = jointDrive;
     this->selectedButton = MVB_PORTS;
@@ -76,10 +76,8 @@ const Image * MainView::GetPortIndexIcon(uint16_t index, bool isSelected)
     return nullptr;
 }
 
-void MainView::Draw()
+void MainView::Draw(Canvas * canvas)
 {
-    Canvas * canvas = this->jointDrive->GetCanvas();
-
     PortState * ports = this->jointDrive->GetState()->ports;
     for (size_t i = 0; i < 5; i++)
     {

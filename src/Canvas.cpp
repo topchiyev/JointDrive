@@ -1,18 +1,18 @@
 #include "Canvas.h"
 #include <Adafruit_PCD8544.h>
 
-#define PIN_RST 2
-#define PIN_CE 3
-#define PIN_DC 4
-#define PIN_DIN 5
-#define PIN_CLK 6
+#define PIN_RST PB5
+#define PIN_CE PA15
+#define PIN_DC PB9
+#define PIN_DIN PB8
+#define PIN_CLK PD6
 
 Adafruit_PCD8544 display = Adafruit_PCD8544(PIN_CLK, PIN_DIN, PIN_DC, PIN_CE, PIN_RST);
 
-Canvas::Canvas()
+void Canvas::Begin()
 {
     display.begin();
-    display.setContrast(60);
+    display.setContrast(55);
     display.clearDisplay();
     display.display();
 }
@@ -29,7 +29,15 @@ void Canvas::AddRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, Color f
 
 void Canvas::AddImage(uint16_t x, uint16_t y, const Image * image)
 {
-    display.drawBitmap(x, y, image->img, image->width, image->height, C_BLACK);
+    //display.drawBitmap(x, y, image->img, image->width, image->height, C_BLACK);
+    for (uint16_t yy = 0; yy < image->height; yy++)
+    {
+        for (uint16_t xx = 0; xx < image->width; xx++)
+        {
+            uint8_t px = image->img[(yy*image->width) + xx];
+            display.drawPixel(x+xx, y+yy, px);
+        }
+    }
 }
 
 void Canvas::AddText(uint16_t x, uint16_t y, uint16_t width, String text, Color fill, FontSize size, Align align)
@@ -51,6 +59,9 @@ void Canvas::AddText(uint16_t x, uint16_t y, uint16_t width, String text, Color 
     {
         x2 = x + (width - width2) / 2;
     }
+
+    display.setCursor(x2, y2);
+    display.print(text);
 }
 
 void Canvas::Draw()

@@ -10,8 +10,7 @@
 class Canvas
 {
     public:
-        explicit Canvas();
-
+        void Begin();
         void Clear();
         void AddRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, Color fill);
         void AddImage(uint16_t x, uint16_t y, const Image *img);

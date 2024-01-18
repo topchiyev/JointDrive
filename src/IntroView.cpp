@@ -5,7 +5,10 @@
 #include "FontSize.h"
 #include "Version.h"
 
-IntroView::IntroView(JointDrive *jointDrive)
+// WIDTH = 84
+// HEIGHT = 48
+
+void IntroView::Begin(JointDrive *jointDrive)
 {
     this->jointDrive = jointDrive;
     uint32_t curTime = millis();
@@ -14,15 +17,12 @@ IntroView::IntroView(JointDrive *jointDrive)
 
 void IntroView::Update(uint32_t time)
 {
-    if (time >= this->hideTime)
-        this->jointDrive->GoToMainView();
+    //if (time >= this->hideTime)
+        //this->jointDrive->GoToMainView();
 }
 
-void IntroView::Draw()
+void IntroView::Draw(Canvas * canvas)
 {
-    Canvas * canvas = this->jointDrive->GetCanvas();
-
-    canvas->AddImage(0, 0, &IMG_INTRO);
-    canvas->AddText(69, 52, 53, "VERSION", C_WHITE, FS_X1, A_LEFT);
-    canvas->AddText(69, 52, 53, JOINT_DRIVE_VERSION, C_WHITE, FS_X1, A_RIGHT);
+    canvas->AddImage(1, 4, &IMG_INTRO);
+    canvas->AddText(1, 40, 82, "VERSION  " + String(JOINT_DRIVE_VERSION), C_BLACK, FS_X1, A_CENTER);
 };

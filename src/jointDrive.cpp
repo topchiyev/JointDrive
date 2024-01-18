@@ -1,7 +1,8 @@
 #include "JointDrive.h"
 #include "Storage.h"
 #include "Direction.h"
-#include "View.h"
+
+#include "ViewType.h"
 #include "IntroView.h"
 #include "MainView.h"
 #include "SettingsView.h"
@@ -12,12 +13,22 @@ Storage storage;
 JointDriveState state;
 Canvas canvas;
 MotorController motorController;
-View * currentView = nullptr;
+
+IntroView introView;
+MainView mainView;
+SettingsView settingsView;
+PortsView portsView;
+PortAdjustView portAdjustView;
+ViewType currentViewType = VT_NONE;
+
 const uint32_t blinkInterval = 100;
 uint32_t blinkChangeTime = 0;
 
-JointDrive::JointDrive()
+void JointDrive::Begin()
 {
+    canvas.Begin();
+    storage.Begin();
+
     state = storage.GetState();
     if (!state.isInitialized)
     {
@@ -104,57 +115,71 @@ void JointDrive::Update()
         blinkChangeTime = curTime + blinkInterval;
     }
 
-    currentView->Update(curTime);    
+    switch (currentViewType)
+    {
+        case VT_INTRO:
+            introView.Update(curTime);
+            break;
+    }
+
     motorController.Update(curTime);
 }
 
 void JointDrive::Draw()
 {
     canvas.Clear();
-    if (currentView != nullptr)
-        currentView->Draw();
+    
+    switch (currentViewType)
+    {
+        case VT_INTRO:
+            introView.Draw(&canvas);
+            break;
+        case VT_MAIN:
+            mainView.Draw(&canvas);
+            break;
+        case VT_SETTINGS:
+            settingsView.Draw(&canvas);
+            break;
+        case VT_PORTS:
+            portsView.Draw(&canvas);
+            break;
+        case VT_PORT_ADJUST:
+            portAdjustView.Draw(&canvas);
+            break;
+    }
+
     canvas.Draw();
 }
 
 
 void JointDrive::GoToIntroView()
 {
-    if (currentView != nullptr)
-        delete currentView;
-
-    currentView = new IntroView(this);
+    currentViewType = VT_INTRO;
+    introView.Begin(this);
 }
 
 void JointDrive::GoToMainView()
 {
-    if (currentView != nullptr)
-        delete currentView;
-
-    currentView = new MainView(this);
+    currentViewType = VT_MAIN;
+    mainView.Begin(this);
 }
 
 void JointDrive::GoToSettingsView()
 {
-    if (currentView != nullptr)
-        delete currentView;
-
-    currentView = new SettingsView(this);
+    currentViewType = VT_SETTINGS;
+    settingsView.Begin(this);
 }
 
 void JointDrive::GoToPortsView(uint16_t portIndex)
 {
-    if (currentView != nullptr)
-        delete currentView;
-
-    currentView = new PortsView(this, portIndex);
+    currentViewType = VT_PORTS;
+    portsView.Begin(this, portIndex);
 }
 
 void JointDrive::GoToPortAdjustView(uint16_t portIndex)
 {
-    if (currentView != nullptr)
-        delete currentView;
-
-    currentView = new PortAdjustView(this, portIndex);
+    currentViewType = VT_PORT_ADJUST;
+    portAdjustView.Begin(this, portIndex);
 }
 
 
@@ -174,8 +199,8 @@ void JointDrive::LoadPort(uint16_t portIndex)
         
     port->status = LOADING;
 
-    if (currentView->viewType == V_PORTS)
-        currentView->PortChanged();
+    if (currentViewType == VT_PORTS)
+        portsView.PortChanged();
         
     uint32_t dist = this->GetLoadedDistance();
     if (port->filamentPosition > 0)
