@@ -1,6 +1,7 @@
 #include "PortAdjustView.h"
-#include "Images.h"
 #include "Direction.h"
+#include "img/img-back-btn-selected.h"
+#include "img/img-back-btn-unselected.h"
 
 void PortAdjustView::Begin(JointDrive * jointDrive, uint16_t portIndex)
 {
@@ -15,25 +16,26 @@ PortState * PortAdjustView::GetPort()
 
 void PortAdjustView::Draw(Canvas * canvas)
 {
-    canvas->AddText(2, -3, 128-4, "PORT " + this->portIndex, C_WHITE, FS_X2, A_CENTER);
-    canvas->AddRect(1, 13, 128-1, 14, C_WHITE);
-    canvas->AddText(2, 19, 128-4, "ADJUST FILAMENT POSITION", C_WHITE, FS_X1, A_LEFT);
-    
+    canvas->AddText(1, 1, 82, "PORT " + String(this->portIndex), C_BLACK, FS_X1, A_CENTER);
+    canvas->AddText(1, 11, 82, "FILAMENT POS", C_BLACK, FS_X1, A_CENTER);
+    canvas->AddRect(1, 21, 82, 1, C_BLACK);
+
     if (this->selectedButton == PAVB_POSITION && (!this->jointDrive->isBlink || !this->isInput))
     {
-        canvas->AddRect(2, 32, 2 + 30, 33 + 12, C_WHITE);
-        canvas->AddText(3, 29, 30, "" + this->GetPort()->filamentPosition, C_BLACK, FS_X2, A_CENTER);
+        canvas->AddRect(1, 24, 42, 11, C_BLACK);
+        canvas->AddText(3, 26, 78, String(this->GetPort()->filamentPosition), C_WHITE, FS_X1, A_LEFT);
     }
     else
     {
-        canvas->AddText(3, 29, 30, "" + this->GetPort()->filamentPosition, C_WHITE, FS_X2, A_CENTER);
-        canvas->AddRect(2, 45, 2 + 30, 45+1, C_WHITE);
+        canvas->AddRect(1, 24, 42, 11, C_BLACK);
+        canvas->AddRect(2, 25, 40, 9, C_WHITE);
+        canvas->AddText(3, 26, 78, String(this->GetPort()->filamentPosition), C_BLACK, FS_X1, A_LEFT);
     }
 
     if (this->selectedButton == PAVB_BACK)
-        canvas->AddImage(2, 52, &IMG_BACK_BTN_SELECTED);
+        canvas->AddImage(1, 37, &IMG_BACK_BTN_SELECTED);
     else
-        canvas->AddImage(2, 52, &IMG_BACK_BTN_UNSELECTED);
+        canvas->AddImage(1, 37, &IMG_BACK_BTN_UNSELECTED);
 }
 
 void PortAdjustView::LeftBtnClick()

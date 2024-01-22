@@ -1,5 +1,5 @@
 #include "IntroView.h"
-#include "Images.h"
+#include "img/img-intro-screen.h"
 #include "Color.h"
 #include "Align.h"
 #include "FontSize.h"
@@ -17,12 +17,12 @@ void IntroView::Begin(JointDrive *jointDrive)
 
 void IntroView::Update(uint32_t time)
 {
-    //if (time >= this->hideTime)
-        //this->jointDrive->GoToMainView();
+    if (time >= this->hideTime)
+        this->jointDrive->IntroViewFinished();
 }
 
 void IntroView::Draw(Canvas * canvas)
 {
-    canvas->AddImage(1, 4, &IMG_INTRO);
+    canvas->AddImage(1, 4, &IMG_INTRO_SCREEN);
     canvas->AddText(1, 40, 82, "VERSION  " + String(JOINT_DRIVE_VERSION), C_BLACK, FS_X1, A_CENTER);
 };

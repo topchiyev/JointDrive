@@ -5,19 +5,19 @@
 
 enum PortStatus
 {
-    EMPTY = 0,
-    LOADING = 1,
-    LOADED = 2,
-    UNLOADING = 3,
-    PUSHING = 4,
-    FEEDING = 5,
-    PULLING = 6
+    PS_EMPTY = 0,
+    PS_LOADING = 1,
+    PS_LOADED = 2,
+    PS_UNLOADING = 3,
+    PS_PUSHING = 4,
+    PS_FEEDING = 5,
+    PS_PULLING = 6
 };
 
 struct PortState
 {
     uint16_t index = 0;
-    PortStatus status = EMPTY;
+    PortStatus status = PS_EMPTY;
     int16_t filamentPosition = 0;
 };
 

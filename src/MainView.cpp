@@ -3,7 +3,24 @@
 #include "State.h"
 #include "FontSize.h"
 #include "Align.h"
-#include "Images.h"
+#include "img/img-port-empty.h"
+#include "img/img-port-loaded.h"
+#include "img/img-port-loading.h"
+#include "img/img-port-feeding.h"
+#include "img/img-port-number-1-selected.h"
+#include "img/img-port-number-2-selected.h"
+#include "img/img-port-number-3-selected.h"
+#include "img/img-port-number-4-selected.h"
+#include "img/img-port-number-5-selected.h"
+#include "img/img-port-number-1-unselected.h"
+#include "img/img-port-number-2-unselected.h"
+#include "img/img-port-number-3-unselected.h"
+#include "img/img-port-number-4-unselected.h"
+#include "img/img-port-number-5-unselected.h"
+#include "img/img-ports-btn-selected.h"
+#include "img/img-settings-btn-selected.h"
+#include "img/img-ports-btn-unselected.h"
+#include "img/img-settings-btn-unselected.h"
 
 void MainView::Begin(JointDrive * jointDrive)
 {
@@ -15,23 +32,23 @@ const Image * MainView::GetPortIcon(PortStatus status, bool isSelected)
 {
     switch (status)
     {
-        case EMPTY:
+        case PS_EMPTY:
             return &IMG_PORT_EMPTY;
-        case LOADING:
-        case UNLOADING:
+        case PS_LOADING:
+        case PS_UNLOADING:
             if (isSelected)
                 return &IMG_PORT_LOADING;
             else
                 return &IMG_PORT_EMPTY;
-        case LOADED:
+        case PS_LOADED:
             return &IMG_PORT_LOADED;
-        case PULLING:
-        case PUSHING:
+        case PS_PULLING:
+        case PS_PUSHING:
             if (isSelected)
                 return &IMG_PORT_FEEDING;
             else
                 return &IMG_PORT_LOADED;
-        case FEEDING:
+        case PS_FEEDING:
             return &IMG_PORT_FEEDING;
     }
 
@@ -84,27 +101,27 @@ void MainView::Draw(Canvas * canvas)
         PortState port = ports[i];
 
         bool isTextSelected = false;
-        if (port.status == LOADING || port.status == UNLOADING || port.status == PULLING || port.status == PUSHING)
+        if (port.status == PS_LOADING || port.status == PS_UNLOADING || port.status == PS_PULLING || port.status == PS_PUSHING)
             if (!this->jointDrive->isBlink)
                 isTextSelected = true;
 
         const Image * portIcon = this->GetPortIcon(port.status, this->jointDrive->isBlink);
         const Image * portIndexIcon = this->GetPortIndexIcon(port.index, isTextSelected);
 
-        canvas->AddImage(4 + ((port.index - 1) * (20 + 5)), 2, portIcon);
-        canvas->AddImage(4 + ((port.index - 1) * (20 + 5)), 24, portIndexIcon);
+        canvas->AddImage(1 + ((port.index - 1) * (14 + 3)), 1, portIcon);
+        canvas->AddImage(1 + ((port.index - 1) * (14 + 3)), 17, portIndexIcon);
             
         if (this->selectedButton == MVB_PORTS)
-            canvas->AddImage(2, 52, &IMG_PORTS_BTN_SELECTED);
+            canvas->AddImage(1, 37, &IMG_PORTS_BTN_SELECTED);
         else
-            canvas->AddImage(2, 52, &IMG_PORTS_BTN_UNSELECTED);
+            canvas->AddImage(1, 37, &IMG_PORTS_BTN_UNSELECTED);
             
         if (this->selectedButton == MVB_SETTINGS)
-            canvas->AddImage(114, 52, &IMG_SETTINGS_BTN_SELECTED);
+            canvas->AddImage(71, 37, &IMG_SETTINGS_BTN_SELECTED);
         else
-            canvas->AddImage(114, 52, &IMG_SETTINGS_BTN_UNSELECTED);
+            canvas->AddImage(71, 37, &IMG_SETTINGS_BTN_UNSELECTED);
             
-        canvas->AddText(0, 42, 128, this->GetActivity(), C_WHITE, FS_X1, A_CENTER);
+        canvas->AddText(1, 27, 82, this->GetActivity(), C_BLACK, FS_X1, A_CENTER);
     }
 }
 
@@ -115,14 +132,19 @@ String MainView::GetActivity()
     {
         PortState port = ports[i];
 
-        if (port.status == FEEDING)
+        if (port.status == PS_FEEDING)
             return "FEEDING PORT " + port.index;
-        if (port.status == PULLING)
+        if (port.status == PS_PULLING)
             return "PULLING PORT " + port.index;
-        if (port.status == LOADING)
+        if (port.status == PS_LOADING)
             return "LOADING PORT " + port.index;
-        if (port.status == UNLOADING)
+        if (port.status == PS_UNLOADING)
             return "UNLOADING PORT " + port.index;
+    }
+
+    if (jointDrive->isHoming)
+    {
+        return "HOMING";
     }
         
     return "IDLE";

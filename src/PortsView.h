@@ -5,6 +5,7 @@
 
 enum PortsViewButton
 {
+    PVB_NONE = -1,
     PVB_BACK = 0,
     PVB_PORT = 1,
     PVB_LOAD = 5,
@@ -34,6 +35,9 @@ class PortsView
         uint16_t activeButtonsLen;
         PortState * GetPort();
         bool IsButtonActive(PortsViewButton btn);
+        PortsViewButton GetPrevActiveButton(PortsViewButton button);
+        PortsViewButton GetNextActiveButton(PortsViewButton button);
+
 };
 
 #endif
