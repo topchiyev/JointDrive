@@ -105,7 +105,7 @@ void MainView::Draw(Canvas * canvas)
             if (!this->jointDrive->isBlink)
                 isTextSelected = true;
 
-        const Image * portIcon = this->GetPortIcon(port.status, this->jointDrive->isBlink);
+        const Image * portIcon = this->GetPortIcon(port.status, isTextSelected);
         const Image * portIndexIcon = this->GetPortIndexIcon(port.index, isTextSelected);
 
         canvas->AddImage(1 + ((port.index - 1) * (14 + 3)), 1, portIcon);
@@ -121,30 +121,31 @@ void MainView::Draw(Canvas * canvas)
         else
             canvas->AddImage(71, 37, &IMG_SETTINGS_BTN_UNSELECTED);
             
-        canvas->AddText(1, 27, 82, this->GetActivity(), C_BLACK, FS_X1, A_CENTER);
+        canvas->AddText(0, 27, 84, this->GetActivity(), C_BLACK, FS_X1, A_CENTER);
     }
 }
 
 String MainView::GetActivity()
 {
+    if (jointDrive->isHoming)
+    {
+        //return "HOMING";
+        return String(jointDrive->GetSgResult());
+    }
+    
     PortState * ports = this->jointDrive->GetState()->ports;
     for (size_t i = 0; i < 5; i++)
     {
         PortState port = ports[i];
 
         if (port.status == PS_FEEDING)
-            return "FEEDING PORT " + port.index;
+            return "FEEDING " + String(port.index);
         if (port.status == PS_PULLING)
-            return "PULLING PORT " + port.index;
+            return "PULLING " + String(port.index);
         if (port.status == PS_LOADING)
-            return "LOADING PORT " + port.index;
+            return "LOADING " + String(port.index);
         if (port.status == PS_UNLOADING)
-            return "UNLOADING PORT " + port.index;
-    }
-
-    if (jointDrive->isHoming)
-    {
-        return "HOMING";
+            return "UNLOADING " + String(port.index);
     }
         
     return "IDLE";

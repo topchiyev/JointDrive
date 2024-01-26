@@ -19,6 +19,7 @@ class JointDrive: public MotorControllerDelegate, public RotaryEncoderController
         void SetFeedingDistance(uint32_t value);
         PortState * GetPort(uint16_t portIndex);
         bool IsPortBusy(uint16_t portIndex, bool includeFeeding = false);
+        uint32_t GetSgResult();
         void Refresh();
 
         void GoToIntroView();
@@ -36,9 +37,10 @@ class JointDrive: public MotorControllerDelegate, public RotaryEncoderController
         void MakePortAdjustmentMove();
         void CancelTask();
 
-        void OnMotorControllerSwitchingFinish(SwitchMotorPosition position);
-        void OnMotorControllerStep(uint16_t portIndex, uint32_t distance);
-        void OnMotorControllerFinish(uint16_t portIndex);
+        void OnMotorControllerFinishedHoming();
+        void OnMotorControllerFinishedSwitching(SwitchMotorPosition position);
+        void OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceLeft);
+        void OnMotorControllerFinishedMoving(uint16_t portIndex);
 
         void OnRotaryEncoderIncreased();
         void OnRotaryEncoderDecreased();
@@ -46,6 +48,7 @@ class JointDrive: public MotorControllerDelegate, public RotaryEncoderController
 
     private:
         void Update();
+        void UpdateActions();
         void Draw();
 };
 

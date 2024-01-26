@@ -2,7 +2,6 @@
 #define MOTOR_CONTROLLER
 
 #include <Arduino.h>
-#include <TMC2209.h>
 #include "Direction.h"
 
 enum SwitchMotorPosition
@@ -16,9 +15,10 @@ enum SwitchMotorPosition
 class MotorControllerDelegate
 {
     public:
-        virtual void OnMotorControllerSwitchingFinish(SwitchMotorPosition position) { }
-        virtual void OnMotorControllerStep(uint16_t portIndex, uint32_t distance) { }
-        virtual void OnMotorControllerFinish(uint16_t portIndex) { }
+        virtual void OnMotorControllerFinishedHoming() { }
+        virtual void OnMotorControllerFinishedSwitching(SwitchMotorPosition position) { }
+        virtual void OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceLeft) { }
+        virtual void OnMotorControllerFinishedMoving(uint16_t portIndex) { }
 };
 
 class MotorController
@@ -31,22 +31,16 @@ class MotorController
         SwitchMotorPosition GetSwitchPosition();
         void Home();
         void SwitchMotorToPosition(SwitchMotorPosition position);
-        void MoveFilament(
-            uint16_t portIndex, uint16_t speed, Direction direction, uint16_t distance);
+        void MoveFilament(uint16_t portIndex, Direction direction, uint16_t distance);
         void Stop();
         void Update(uint32_t time);
+        uint32_t GetSgResult();
         
     private:
-        uint16_t speed = 0;
-        Direction direction = D_FORWARD;
-        uint16_t distance = 0;
-        uint16_t pastDistance = 0;
-        uint16_t frequency = 50;
-        uint32_t movementTime = 0;
         MotorControllerDelegate * delegate = nullptr;
         void MakeMovement();
-        void HomingUpdate(uint32_t time);
         void NormalUpdate(uint32_t time);
+        void HomingUpdate(uint32_t time);
 };
 
 #endif
