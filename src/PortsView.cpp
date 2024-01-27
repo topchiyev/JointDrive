@@ -108,6 +108,7 @@ void PortsView::Draw(Canvas * canvas)
         
     PortState * port = this->GetPort();
     String status = PortStatusToString(port->status);
+    
     if (port->status == PS_LOADING)
         status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetLoadedDistance());
     else if (port->status == PS_UNLOADING)

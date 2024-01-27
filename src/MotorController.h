@@ -30,6 +30,7 @@ class MotorController
         void Begin(MotorControllerDelegate * delegate);
         SwitchMotorPosition GetSwitchPosition();
         void Home();
+        SwitchMotorPosition PortIndexToSwitchPosition(uint8_t portIndex);
         void SwitchMotorToPosition(SwitchMotorPosition position);
         void MoveFilament(uint16_t portIndex, Direction direction, uint16_t distance);
         void Stop();

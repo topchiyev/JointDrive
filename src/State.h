@@ -18,13 +18,13 @@ struct PortState
 {
     uint16_t index = 0;
     PortStatus status = PS_EMPTY;
-    int16_t filamentPosition = 0;
+    uint32_t filamentPosition = 0;
 };
 
 struct JointDriveState
 {
     bool isInitialized = false;
-    uint16_t feedingDistance = 0;
+    uint32_t feedingDistance = 0;
     PortState ports[5];
 };
 

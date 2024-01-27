@@ -9,16 +9,16 @@
 // 360 DEGREE = 200 STEPS
 // 360 DEGREE = 1600 MICROSTEPS
 
-#define STEPS_PER_MM                80
-
-#define SWITCH_RIGHT_STEP           90 * STEPS_PER_MM
-#define SWITCH_CENTER_STEP          45 * STEPS_PER_MM 
-#define SWITCH_LEFT_STEP            0
-#define SWITCH_HOMING_EXTRA_STEP    10 * STEPS_PER_MM
-#define SWITCH_SPEED                40 * STEPS_PER_MM
+#define SWITCH_STEPS_PER_MM         80
+#define SWITCH_RIGHT_POS           90 * SWITCH_STEPS_PER_MM
+#define SWITCH_CENTER_POS          45 * SWITCH_STEPS_PER_MM 
+#define SWITCH_LEFT_POS            0
+#define SWITCH_HOMING_EXTRA_STEP    10 * SWITCH_STEPS_PER_MM
+#define SWITCH_SPEED                40 * SWITCH_STEPS_PER_MM
 #define SWITCH_ACCELERATION         1000000000
 
-#define FILAMENT_SPEED              25 * STEPS_PER_MM 
+#define FILAMENT_STEPS_PER_MM       80
+#define FILAMENT_SPEED              100 * FILAMENT_STEPS_PER_MM 
 #define FILAMENT_ACCELERATION       1000000000
 
 #define BAUD_RATE 256000
@@ -142,7 +142,7 @@ void MotorController::Begin(MotorControllerDelegate * delegate)
     stepperFilament1.setMaxSpeed(SPEED_FILAMENT); // 100mm/s @ 80 steps/mm
     stepperFilament1.setAcceleration(ACCELRATION); // 2000mm/s^2
     stepperFilament1.setEnablePin(MOTOR_FILAMENT1_EN);
-    stepperFilament1.setPinsInverted(true, false, true);
+    stepperFilament1.setPinsInverted(false, false, true);
     stepperFilament1.enableOutputs();
 
     driverFilament2.begin();
@@ -202,27 +202,26 @@ uint8_t PortIndexToMotorIndex(uint8_t portIndex)
 
 bool PortIndexToDirection(uint8_t portIndex, Direction originalDir)
 {
-    switch (portIndex)
-    {
-        case 1:
-        case 3:
-        case 5:
-            return originalDir == D_FORWARD ? true : false;
-        default:
-            return originalDir == D_FORWARD ? false : true;
-    }
+    bool dir = true;
+    if (portIndex == 1 || portIndex == 3 || portIndex == 5)
+        dir = false;
+    
+    if (originalDir == D_BACKWARD)
+        dir = !dir;
+
+    return dir;
 } 
 
-SwitchMotorPosition PortIndexToSwitchPosition(uint8_t portIndex)
+SwitchMotorPosition MotorController::PortIndexToSwitchPosition(uint8_t portIndex)
 {
     switch (portIndex)
     {
         case 1:
         case 3:
         case 5:
-            return SMP_RIGHT;
-        default:
             return SMP_LEFT;
+        default:
+            return SMP_RIGHT;
     }
 }
 
@@ -233,7 +232,7 @@ void MotorController::Home()
 
     isHoming = true;
     stepperSwitch.setCurrentPosition(0);
-    stepperSwitch.moveTo(SWITCH_RIGHT_STEP + SWITCH_HOMING_EXTRA_STEP);
+    stepperSwitch.moveTo(SWITCH_RIGHT_POS + SWITCH_HOMING_EXTRA_STEP);
 
     isIdle = false;
 }
@@ -264,13 +263,13 @@ void MotorController::SwitchMotorToPosition(SwitchMotorPosition position)
     switch (position)
     {
         case SMP_LEFT:
-            destPos = SWITCH_LEFT_STEP;
+            destPos = SWITCH_LEFT_POS;
             break;
         case SMP_CENTER:
-            destPos = SWITCH_CENTER_STEP;
+            destPos = SWITCH_CENTER_POS;
             break;
         case SMP_RIGHT:
-            destPos = SWITCH_RIGHT_STEP;
+            destPos = SWITCH_RIGHT_POS;
             break;
     }
 
@@ -287,29 +286,29 @@ void MotorController::MoveFilament(uint16_t portIndex, Direction direction, uint
         
     this->portIndex = portIndex;
 
-    auto destPos = PortIndexToSwitchPosition(portIndex);
+    SwitchMotorPosition destPos = PortIndexToSwitchPosition(this->portIndex);
     if (switchPosition != destPos)
         return;
 
-    auto motorIndex = PortIndexToMotorIndex(portIndex);
-    auto dir = PortIndexToDirection(portIndex, direction);
+    uint8_t motorIndex = PortIndexToMotorIndex(portIndex);
+    bool dir = PortIndexToDirection(this->portIndex, direction);
 
-    long move = (direction ? 1 : -1) * distance * STEPS_PER_MM;
+    long move = (dir ? 1 : -1) * distance * FILAMENT_STEPS_PER_MM;
 
     switch (motorIndex)
     {
         case 1:
-            this->isIdle = true;
+            this->isIdle = false;
             filament1Stopped = false;
             stepperFilament1.moveTo(move);
             break;
         case 2:
-            this->isIdle = true;
+            this->isIdle = false;
             filament2Stopped = false;
             stepperFilament2.moveTo(move);
             break;
         case 3:
-            this->isIdle = true;
+            this->isIdle = false;
             filament3Stopped = false;
             stepperFilament3.moveTo(move);
             break;
@@ -351,11 +350,11 @@ void MotorController::NormalUpdate(uint32_t time)
         if (!stepperSwitch.isRunning())
         {
             switchStopped = true;
-            if (stepperSwitch.currentPosition() == SWITCH_LEFT_STEP)
+            if (stepperSwitch.currentPosition() == SWITCH_LEFT_POS)
             {
                 switchPosition = SMP_LEFT;
             }
-            else if (stepperSwitch.currentPosition() == SWITCH_RIGHT_STEP)
+            else if (stepperSwitch.currentPosition() == SWITCH_RIGHT_POS)
             {
                 switchPosition = SMP_RIGHT;
             }
@@ -371,7 +370,8 @@ void MotorController::NormalUpdate(uint32_t time)
     {
         if (stepperFilament1.isRunning())
         {
-            delegate->OnMotorControllerMoved(portIndex, stepperFilament1.distanceToGo());
+            uint32_t dist = (uint32_t)abs(stepperFilament1.distanceToGo()) / FILAMENT_STEPS_PER_MM;
+            delegate->OnMotorControllerMoved(portIndex, dist);
         }
         else
         {
@@ -410,17 +410,17 @@ void MotorController::NormalUpdate(uint32_t time)
 
 void MotorController::HomingUpdate(uint32_t time)
 {
-    if (stepperSwitch.targetPosition() == SWITCH_RIGHT_STEP + SWITCH_HOMING_EXTRA_STEP)
+    if (stepperSwitch.targetPosition() == SWITCH_RIGHT_POS + SWITCH_HOMING_EXTRA_STEP)
     {
         sgResult = driverSwitch.SG_RESULT();
-        if (sgResult > 20 && sgResult < 125 && time > switchDirectionChangedOn + 1000)
+        if (stepperSwitch.currentPosition() == SWITCH_RIGHT_POS + SWITCH_HOMING_EXTRA_STEP || (sgResult > 40 && sgResult < 130 && time > switchDirectionChangedOn + 1000))
         {
-            stepperSwitch.setCurrentPosition(SWITCH_RIGHT_STEP + SWITCH_HOMING_EXTRA_STEP);
-            stepperSwitch.moveTo(SWITCH_RIGHT_STEP);
+            stepperSwitch.setCurrentPosition(SWITCH_RIGHT_POS + SWITCH_HOMING_EXTRA_STEP);
+            stepperSwitch.moveTo(SWITCH_RIGHT_POS);
             switchDirectionChangedOn = time;
         }
     }
-    else if (stepperSwitch.targetPosition() == SWITCH_RIGHT_STEP)
+    else if (stepperSwitch.targetPosition() == SWITCH_RIGHT_POS)
     {
         if (stepperSwitch.distanceToGo() == 0)
         {

@@ -26,7 +26,8 @@ struct JointDriveAction
     SwitchMotorPosition switchPosition;
     uint8_t portIndex;
     Direction direction;
-    uint64_t distance;
+    uint32_t distance;
+    bool isAwaitingHuman;
 };
 
 Storage storage;
@@ -55,9 +56,9 @@ void JointDrive::Begin()
     inputController.Begin(PD0, PD2, PD3, this);
     motorController.Begin(this);
 
-    state = storage.GetState();
     // To reset state
-    state.isInitialized = false;
+    storage.ClearState();
+    state = storage.GetState();
     if (!state.isInitialized)
     {
         state.feedingDistance = 100;
@@ -103,7 +104,7 @@ void JointDrive::SetFeedingDistance(uint32_t value)
 
 uint32_t JointDrive::GetLoadedDistance()
 {
-    return 200;
+    return 220;
 }
 
 PortState * JointDrive::GetPort(uint16_t portIndex)
@@ -182,13 +183,20 @@ void JointDrive::UpdateActions()
     {
         if (action->type == JDAT_SWITCH)
         {
-            motorController.SwitchMotorToPosition(action->switchPosition);
             action->isWorking = true;
+            motorController.SwitchMotorToPosition(action->switchPosition);
         }
         else if (action->type == JDAT_LOAD)
         {
-            action->isWorking = true;
-            motorController.MoveFilament(action->portIndex, action->direction, action->distance);
+            if (!action->isAwaitingHuman)
+            {
+                action->isWorking = true;
+                action->isAwaitingHuman = true;
+            }
+            else
+            {
+                motorController.MoveFilament(action->portIndex, action->direction, action->distance);
+            }
         }
     }
 }
@@ -280,15 +288,13 @@ void JointDrive::LoadPort(uint16_t portIndex)
         portsView.PortChanged();
         
     uint32_t dist = this->GetLoadedDistance();
-    if (port->filamentPosition > 0)
-        dist -= port->filamentPosition;
+    // if (port->filamentPosition > 0)
+    //     dist -= port->filamentPosition;
 
-    SwitchMotorPosition desiredPos = SMP_LEFT;
-    if (portIndex == 2 || portIndex == 4)
-        desiredPos = SMP_LEFT;
-
+    SwitchMotorPosition desiredPos = motorController.PortIndexToSwitchPosition(portIndex);
+    
     currentActionIndex = 0;
-    uint32_t i = 0;
+    uint8_t i = 0;
 
     if (motorController.GetSwitchPosition() != desiredPos)
     {
@@ -305,7 +311,6 @@ void JointDrive::LoadPort(uint16_t portIndex)
     actions[i].distance = dist;
     actions[i].isEmpty = false;
     actions[i].isWorking = false;
-
 }
 
 void JointDrive::UnloadPort(uint16_t portIndex)
@@ -432,7 +437,9 @@ void JointDrive::OnMotorControllerFinishedSwitching(SwitchMotorPosition position
 }
 void JointDrive::OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceLeft)
 {
-    this->GetPort(portIndex)->filamentPosition += distanceLeft;
+    JointDriveAction * action = &actions[currentActionIndex];
+
+    this->GetPort(portIndex)->filamentPosition = action->distance - distanceLeft;
 }
 void JointDrive::OnMotorControllerFinishedMoving(uint16_t portIndex)
 {
@@ -455,7 +462,6 @@ void JointDrive::OnMotorControllerFinishedMoving(uint16_t portIndex)
     {
         port->status = PS_LOADED;
     }
-
     storage.SetState(state);
 
     if (currentViewType == VT_PORTS)
@@ -511,6 +517,7 @@ void JointDrive::OnRotaryEncoderPressed()
             settingsView.ActionBtnClick();
             break;
         case VT_PORTS:
+
             portsView.ActionBtnClick();
             break;
         case VT_PORT_ADJUST:
