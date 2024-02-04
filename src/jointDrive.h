@@ -6,8 +6,12 @@
 #include "SwitchMotorPosition.h"
 #include "MotorController.h"
 #include "RotaryEncoderController.h"
+#include "SwitchInputController.h"
 
-class JointDrive: public MotorControllerDelegate, public RotaryEncoderControllerDelegate
+class JointDrive:
+    public MotorControllerDelegate,
+    public RotaryEncoderControllerDelegate,
+    public SwitchInputControllerDelegate
 {
     public:
         bool isBlink = false;
@@ -51,6 +55,10 @@ class JointDrive: public MotorControllerDelegate, public RotaryEncoderController
         void OnRotaryEncoderIncreased();
         void OnRotaryEncoderDecreased();
         void OnRotaryEncoderPressed();
+
+        void OnSwitchFilamentChageRequest(uint8_t portIndex);
+        bool IsSwitchPressed();
+        bool IsSwitchPulse();
 
     private:
         void Update();

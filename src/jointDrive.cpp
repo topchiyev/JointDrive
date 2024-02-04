@@ -13,7 +13,8 @@ Storage storage;
 JointDriveState state;
 Canvas canvas;
 MotorController motorController;
-RotaryEncoderController inputController;
+RotaryEncoderController rotaryInputController;
+SwitchInputController switchInputController;
 
 IntroView introView;
 MainView mainView;
@@ -29,8 +30,9 @@ void JointDrive::Begin()
 {
     canvas.Begin();
     storage.Begin();
-    inputController.Begin(PD0, PD2, PD3, this);
     motorController.Begin(this);
+    rotaryInputController.Begin(PD0, PD2, PD3, this);
+    switchInputController.Begin(this);
 
     state = storage.GetState();
     if (!state.isInitialized)
@@ -156,7 +158,8 @@ void JointDrive::Update()
             break;
     }
 
-    inputController.Update(curTime);
+    rotaryInputController.Update(curTime);
+    switchInputController.Update(curTime);
     motorController.Update(curTime);
 }
 
@@ -489,4 +492,19 @@ void JointDrive::OnRotaryEncoderPressed()
             portAdjustView.ActionBtnClick();
             break;
     }
+}
+
+void OnSwitchFilamentChageRequest(uint8_t portIndex)
+{
+
+}
+
+bool JointDrive::IsSwitchPressed()
+{
+    return switchInputController.IsPressed();
+}
+
+bool JointDrive::IsSwitchPulse()
+{
+    return switchInputController.IsPulse();
 }
