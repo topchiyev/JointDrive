@@ -7,8 +7,8 @@ enum SettingsViewButton
 {
     SVB_BACK = 0,
     SVB_DISTANCE = 1,
-    SVB_RESET = 2,
-    SVB_SAVE = 3,
+    SVB_FREE = 2,
+    SVB_RESET = 3,
 };
 
 class SettingsView

@@ -13,6 +13,15 @@
 #include "img/img-adjust-btn-unselected.h"
 #include "img/img-cancel-btn-selected.h"
 #include "img/img-cancel-btn-unselected.h"
+#include "img/img-ready-btn-selected.h"
+#include "img/img-ready-btn-unselected.h"
+
+bool isSwitchingFinished = true;
+bool isPreparingForLoading = false;
+bool isPreparingForUnloading = false;
+bool isPreparingForFeeding = false;
+bool isPreparingForPulling = false;
+
 
 void PortsView::Begin(JointDrive * jointDrive, uint16_t portIndex)
 {
@@ -66,8 +75,21 @@ void PortsView::PortChanged()
 
     if (port->status == PS_EMPTY)
     {
-        this->activeButtons = new PortsViewButton[4] { PVB_BACK, PVB_PORT, PVB_LOAD, PVB_ADJUST };
-        this->activeButtonsLen = 4;
+        if (!isSwitchingFinished)
+        {
+            this->activeButtons = new PortsViewButton[1] { PVB_NONE };
+            this->activeButtonsLen = 1;
+        }
+        else if (isPreparingForLoading)
+        {
+            this->activeButtons = new PortsViewButton[2] { PVB_READY, PVB_CANCEL };
+            this->activeButtonsLen = 2;
+        }
+        else
+        {
+            this->activeButtons = new PortsViewButton[4] { PVB_BACK, PVB_PORT, PVB_LOAD, PVB_ADJUST };
+            this->activeButtonsLen = 4;
+        }
     }
     else if (port->status == PS_LOADING || port->status == PS_UNLOADING || port->status == PS_PUSHING || port->status == PS_PULLING)
     {
@@ -76,17 +98,64 @@ void PortsView::PortChanged()
     }
     else if (port->status == PS_LOADED)
     {
-        this->activeButtons = new PortsViewButton[5] { PVB_BACK, PVB_PORT, PVB_FEED, PVB_UNLOAD, PVB_ADJUST };
-        this->activeButtonsLen = 5;
+        if (!isSwitchingFinished)
+        {
+            this->activeButtons = new PortsViewButton[1] { PVB_NONE };
+            this->activeButtonsLen = 1;
+        }
+        else
+        {
+            if (jointDrive->IsFeeding())
+            {
+                this->activeButtons = new PortsViewButton[5] { PVB_BACK, PVB_PORT, PVB_UNLOAD, PVB_ADJUST };
+                this->activeButtonsLen = 4;
+            }
+            else
+            {
+            this->activeButtons = new PortsViewButton[5] { PVB_BACK, PVB_PORT, PVB_FEED, PVB_UNLOAD, PVB_ADJUST };
+            this->activeButtonsLen = 5;
+            }
+        }
     }
     else if (port->status == PS_FEEDING)
     {
-        this->activeButtons = new PortsViewButton[4] { PVB_BACK, PVB_PORT, PVB_PULL, PVB_ADJUST };
-        this->activeButtonsLen = 4;
+        if (!isSwitchingFinished)
+        {
+            this->activeButtons = new PortsViewButton[1] { PVB_NONE };
+            this->activeButtonsLen = 1;
+        }
+        else
+        {
+            this->activeButtons = new PortsViewButton[4] { PVB_BACK, PVB_PORT, PVB_PULL, PVB_ADJUST };
+            this->activeButtonsLen = 4;
+        }
     }
 
     if (!this->IsButtonActive(this->selectedButton))
         this->selectedButton = this->activeButtons[0];
+}
+
+void PortsView::SwitchingFinished()
+{
+    isSwitchingFinished = true;
+    this->PortChanged();
+    PortState * port = this->GetPort();
+
+    if (isPreparingForUnloading)
+    {
+        isPreparingForUnloading = false;
+        this->jointDrive->UnloadPort(this->selectedPortIndex);
+    }
+    else if (isPreparingForFeeding)
+    {
+        isPreparingForFeeding = false;
+        this->jointDrive->PushPort(this->selectedPortIndex);
+    }
+    else if (isPreparingForPulling)
+    {
+        isPreparingForPulling = false;
+        this->jointDrive->PullPort(this->selectedPortIndex);
+    }
 }
 
 void PortsView::Draw(Canvas * canvas)
@@ -112,11 +181,11 @@ void PortsView::Draw(Canvas * canvas)
     if (port->status == PS_LOADING)
         status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetLoadedDistance());
     else if (port->status == PS_UNLOADING)
-        status = " " + String(port->filamentPosition) + "/" + String(0);
-    else if (port->status == PS_PUSHING)
-        status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetLoadedDistance() + this->jointDrive->GetFeedingDistance());
-    else if (port->status == PS_PULLING)
         status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetLoadedDistance());
+    else if (port->status == PS_PUSHING)
+        status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetFeedingDistance());
+    else if (port->status == PS_PULLING)
+        status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetFeedingDistance());
     else
         status = "STATS:" + status;
         
@@ -169,6 +238,14 @@ void PortsView::Draw(Canvas * canvas)
         else
             canvas->AddImage(65, 37, &IMG_ADJUST_BTN_UNSELECTED);
     }
+
+    if (this->IsButtonActive(PVB_READY))
+    {
+        if (this->selectedButton == PVB_READY)
+            canvas->AddImage(20, 37, &IMG_READY_BTN_SELECTED);
+        else
+            canvas->AddImage(20, 37, &IMG_READY_BTN_UNSELECTED);
+    }
         
     if (this->IsButtonActive(PVB_CANCEL))
     {
@@ -217,22 +294,59 @@ void PortsView::ActionBtnClick()
         {
             this->isInput = true;
         }
+        return;
     }
-            
-    else if (this->selectedButton == PVB_BACK)
+
+    PortState * port = this->GetPort();
+    
+    if (this->selectedButton == PVB_BACK)
         this->jointDrive->GoToMainView();
     else if (this->selectedButton == PVB_LOAD)
-        this->jointDrive->LoadPort(this->selectedPortIndex);
+    {
+        isSwitchingFinished = false;
+        isPreparingForLoading = true;
+        this->jointDrive->SwitchToPositionForPort(this->selectedPortIndex);
+        this->PortChanged();
+    }
     else if (this->selectedButton == PVB_UNLOAD)
-        this->jointDrive->UnloadPort(this->selectedPortIndex);
+    {
+        isSwitchingFinished = false;
+        isPreparingForUnloading = true;
+        this->jointDrive->SwitchToPositionForPort(this->selectedPortIndex);
+        this->PortChanged();
+    }
     else if (this->selectedButton == PVB_FEED)
-        this->jointDrive->PushPort(this->selectedPortIndex);
+    {
+        if (!jointDrive->IsFeeding())
+        {
+            isSwitchingFinished = false;
+            isPreparingForFeeding = true;
+            this->jointDrive->SwitchToPositionForPort(this->selectedPortIndex);
+            this->PortChanged();
+        }
+    }
     else if (this->selectedButton == PVB_PULL)
-        this->jointDrive->PullPort(this->selectedPortIndex);
+    {
+        isSwitchingFinished = false;
+        isPreparingForPulling = true;
+        this->jointDrive->SwitchToPositionForPort(this->selectedPortIndex);
+        this->PortChanged();
+    }
     else if (this->selectedButton == PVB_CANCEL)
+    {
+        isPreparingForLoading = false;
         this->jointDrive->CancelTask();
+    }
     else if (this->selectedButton == PVB_ADJUST)
         this->jointDrive->GoToPortAdjustView(this->selectedPortIndex);
+    else if (this->selectedButton == PVB_READY)
+    {
+        if (isSwitchingFinished && isPreparingForLoading)
+        {
+            isPreparingForLoading = false;
+            this->jointDrive->LoadPort(this->selectedPortIndex);
+        }
+    }
 }
 
 PortsViewButton PortsView::GetPrevActiveButton(PortsViewButton button)

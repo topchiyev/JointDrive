@@ -14,6 +14,7 @@ enum PortsViewButton
     PVB_PULL = 8,
     PVB_CANCEL = 9,
     PVB_ADJUST = 10,
+    PVB_READY = 11,
 };
 
 class PortsView
@@ -25,6 +26,7 @@ class PortsView
         void RightBtnClick();
         void ActionBtnClick();
         void PortChanged();
+        void SwitchingFinished();
 
     private:
         JointDrive * jointDrive;
@@ -37,7 +39,6 @@ class PortsView
         bool IsButtonActive(PortsViewButton btn);
         PortsViewButton GetPrevActiveButton(PortsViewButton button);
         PortsViewButton GetNextActiveButton(PortsViewButton button);
-
 };
 
 #endif

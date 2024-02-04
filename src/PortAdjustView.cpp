@@ -16,6 +16,8 @@ PortState * PortAdjustView::GetPort()
 
 void PortAdjustView::Draw(Canvas * canvas)
 {
+    PortState * port = GetPort();
+
     canvas->AddText(1, 1, 82, "PORT " + String(this->portIndex), C_BLACK, FS_X1, A_CENTER);
     canvas->AddText(1, 11, 82, "FILAMENT POS", C_BLACK, FS_X1, A_CENTER);
     canvas->AddRect(1, 21, 82, 1, C_BLACK);
@@ -23,13 +25,13 @@ void PortAdjustView::Draw(Canvas * canvas)
     if (this->selectedButton == PAVB_POSITION && (!this->jointDrive->isBlink || !this->isInput))
     {
         canvas->AddRect(1, 24, 42, 11, C_BLACK);
-        canvas->AddText(3, 26, 78, String(this->GetPort()->filamentPosition), C_WHITE, FS_X1, A_LEFT);
+        canvas->AddText(3, 26, 78, String(port->filamentPosition), C_WHITE, FS_X1, A_LEFT);
     }
     else
     {
         canvas->AddRect(1, 24, 42, 11, C_BLACK);
         canvas->AddRect(2, 25, 40, 9, C_WHITE);
-        canvas->AddText(3, 26, 78, String(this->GetPort()->filamentPosition), C_BLACK, FS_X1, A_LEFT);
+        canvas->AddText(3, 26, 78, String(port->filamentPosition), C_BLACK, FS_X1, A_LEFT);
     }
 
     if (this->selectedButton == PAVB_BACK)

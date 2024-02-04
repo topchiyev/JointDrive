@@ -3,6 +3,7 @@
 
 #include "Canvas.h"
 #include "State.h"
+#include "SwitchMotorPosition.h"
 #include "MotorController.h"
 #include "RotaryEncoderController.h"
 
@@ -20,7 +21,11 @@ class JointDrive: public MotorControllerDelegate, public RotaryEncoderController
         PortState * GetPort(uint16_t portIndex);
         bool IsPortBusy(uint16_t portIndex, bool includeFeeding = false);
         uint32_t GetSgResult();
+        bool IsFeeding();
+
         void Refresh();
+
+        void ResetState();
 
         void GoToIntroView();
         void IntroViewFinished();
@@ -29,17 +34,18 @@ class JointDrive: public MotorControllerDelegate, public RotaryEncoderController
         void GoToPortsView(uint16_t portIndex = 1);
         void GoToPortAdjustView(uint16_t portIndex = 1);
 
+        void SwitchToPositionForPort(uint16_t portIndex);
+        void SwitchToFreePosition();
         void LoadPort(uint16_t portIndex);
         void UnloadPort(uint16_t portIndex);
         void PushPort(uint16_t portIndex);
         void PullPort(uint16_t portIndex);
         void AdjustPort(uint16_t portIndex, Direction direction);
-        void MakePortAdjustmentMove();
         void CancelTask();
 
         void OnMotorControllerFinishedHoming();
         void OnMotorControllerFinishedSwitching(SwitchMotorPosition position);
-        void OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceLeft);
+        void OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceGone, Direction direction);
         void OnMotorControllerFinishedMoving(uint16_t portIndex);
 
         void OnRotaryEncoderIncreased();
@@ -48,7 +54,6 @@ class JointDrive: public MotorControllerDelegate, public RotaryEncoderController
 
     private:
         void Update();
-        void UpdateActions();
         void Draw();
 };
 

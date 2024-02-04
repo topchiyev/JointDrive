@@ -9,27 +9,6 @@
 #include "PortsView.h"
 #include "PortAdjustView.h"
 
-enum JointDriveActionType
-{
-    JDAT_SWITCH = 0,
-    JDAT_LOAD = 1,
-    JDAT_UNLOAD = 2,
-    JDAT_PUSH = 3,
-    JDAT_PULL = 4
-};
-
-struct JointDriveAction
-{
-    bool isEmpty = true;
-    bool isWorking = false;
-    JointDriveActionType type;
-    SwitchMotorPosition switchPosition;
-    uint8_t portIndex;
-    Direction direction;
-    uint32_t distance;
-    bool isAwaitingHuman;
-};
-
 Storage storage;
 JointDriveState state;
 Canvas canvas;
@@ -46,9 +25,6 @@ ViewType currentViewType = VT_NONE;
 const uint32_t blinkInterval = 500;
 uint32_t blinkChangeTime = 0;
 
-JointDriveAction actions[4];
-uint8_t currentActionIndex = 0;
-
 void JointDrive::Begin()
 {
     canvas.Begin();
@@ -56,8 +32,6 @@ void JointDrive::Begin()
     inputController.Begin(PD0, PD2, PD3, this);
     motorController.Begin(this);
 
-    // To reset state
-    storage.ClearState();
     state = storage.GetState();
     if (!state.isInitialized)
     {
@@ -140,6 +114,26 @@ uint32_t JointDrive::GetSgResult()
     return motorController.GetSgResult();
 }
 
+bool JointDrive::IsFeeding()
+{
+    for (size_t i = 0; i < 5; i++)
+    {
+        PortState port = state.ports[i];
+        if (port.status == PS_FEEDING || port.status == PS_PUSHING || port.status == PS_PULLING)
+            return true;
+    }
+    
+    return false;
+}
+
+void(* resetFunc) (void) = 0;
+
+void JointDrive::ResetState()
+{
+    storage.ClearState();
+    NVIC_SystemReset();
+}
+
 void JointDrive::Refresh()
 {
     this->Update();
@@ -162,43 +156,8 @@ void JointDrive::Update()
             break;
     }
 
-    this->UpdateActions();
-
-    this->MakePortAdjustmentMove();
-
     inputController.Update(curTime);
     motorController.Update(curTime);
-}
-
-void JointDrive::UpdateActions()
-{
-    JointDriveAction * action = &actions[currentActionIndex];
-    if (action->isEmpty)
-    {
-        currentActionIndex++;
-        if (currentActionIndex > 3)
-            currentActionIndex = 0;
-    }
-    else if (!action->isWorking)
-    {
-        if (action->type == JDAT_SWITCH)
-        {
-            action->isWorking = true;
-            motorController.SwitchMotorToPosition(action->switchPosition);
-        }
-        else if (action->type == JDAT_LOAD)
-        {
-            if (!action->isAwaitingHuman)
-            {
-                action->isWorking = true;
-                action->isAwaitingHuman = true;
-            }
-            else
-            {
-                motorController.MoveFilament(action->portIndex, action->direction, action->distance);
-            }
-        }
-    }
 }
 
 void JointDrive::Draw()
@@ -265,6 +224,27 @@ void JointDrive::GoToPortAdjustView(uint16_t portIndex)
     portAdjustView.Begin(this, portIndex);
 }
 
+void JointDrive::SwitchToPositionForPort(uint16_t portIndex)
+{
+    if (motorController.isIdle == false)
+        return;
+
+    for (uint16_t i = 1; i <= 5; i++)
+    {
+        PortState * port = GetPort(i);
+        if (IsPortBusy(port->index))
+            return;
+    }
+
+    SwitchMotorPosition desiredPos = motorController.PortIndexToSwitchPosition(portIndex);
+    motorController.SwitchMotorToPosition(desiredPos);
+}
+
+void JointDrive::SwitchToFreePosition()
+{
+    motorController.SwitchMotorToPosition(SMP_CENTER);
+}
+
 void JointDrive::LoadPort(uint16_t portIndex)
 {
     if (motorController.isIdle == false)
@@ -272,6 +252,9 @@ void JointDrive::LoadPort(uint16_t portIndex)
     
     for (uint16_t i = 1; i <= 5; i++)
     {
+        if (i == portIndex)
+            continue;
+
         PortState * port = GetPort(i);
         if (IsPortBusy(port->index))
             return;
@@ -286,31 +269,13 @@ void JointDrive::LoadPort(uint16_t portIndex)
 
     if (currentViewType == VT_PORTS)
         portsView.PortChanged();
-        
-    uint32_t dist = this->GetLoadedDistance();
-    // if (port->filamentPosition > 0)
-    //     dist -= port->filamentPosition;
 
     SwitchMotorPosition desiredPos = motorController.PortIndexToSwitchPosition(portIndex);
-    
-    currentActionIndex = 0;
-    uint8_t i = 0;
-
     if (motorController.GetSwitchPosition() != desiredPos)
-    {
-        actions[i].type = JDAT_SWITCH;
-        actions[i].switchPosition = desiredPos;
-        actions[i].isEmpty = false;
-        actions[i].isWorking = false;
-        i++;
-    }
+        return;
 
-    actions[i].type = JDAT_LOAD;
-    actions[i].portIndex = portIndex;
-    actions[i].direction = D_FORWARD;
-    actions[i].distance = dist;
-    actions[i].isEmpty = false;
-    actions[i].isWorking = false;
+    uint32_t dist = this->GetLoadedDistance();
+    motorController.MoveFilament(portIndex, D_FORWARD, dist);
 }
 
 void JointDrive::UnloadPort(uint16_t portIndex)
@@ -331,6 +296,10 @@ void JointDrive::UnloadPort(uint16_t portIndex)
 
     if (currentViewType == VT_PORTS)
         portsView.PortChanged();
+
+    SwitchMotorPosition desiredPos = motorController.PortIndexToSwitchPosition(portIndex);
+    if (motorController.GetSwitchPosition() != desiredPos)
+        return;
 
     uint32_t dist = port->filamentPosition;
     motorController.MoveFilament(portIndex, D_BACKWARD, dist);
@@ -356,8 +325,6 @@ void JointDrive::PushPort(uint16_t portIndex)
         portsView.PortChanged();
         
     uint32_t dist = this->GetFeedingDistance();
-    if (port->filamentPosition > this->GetLoadedDistance())
-        dist -= (port->filamentPosition - this->GetLoadedDistance());
     motorController.MoveFilament(portIndex, D_FORWARD, dist);
 }
 
@@ -366,6 +333,8 @@ void JointDrive::PullPort(uint16_t portIndex)
     for (uint16_t i = 1; i <= 5; i++)
     {
         PortState * port = GetPort(i);
+        if (port->index == portIndex)
+            continue;
         if (IsPortBusy(port->index))
             return;
     }
@@ -386,20 +355,7 @@ void JointDrive::PullPort(uint16_t portIndex)
 
 void JointDrive::AdjustPort(uint16_t portIndex, Direction direction)
 {
-    // if (filammentMoveBufferDirection != direction)
-    //     filamentMoveBuffer = 0;
-    // filammentMoveBufferDirection = direction;
-    // filamentMoveBufferPortIndex = portIndex;
-    // filamentMoveBuffer++;
-}
-
-void JointDrive::MakePortAdjustmentMove()
-{
-    // if (filamentMoveBuffer == 0 || filamentMoveBufferPortIndex == 0)
-    //     return;
-    
-    // filamentMoveBuffer--;
-    // motorController.MoveFilament(filamentMoveBufferPortIndex, 1, filammentMoveBufferDirection, 1);
+    motorController.MoveFilament(portIndex, direction, 1);
 }
 
 void JointDrive::CancelTask()
@@ -431,15 +387,22 @@ void JointDrive::OnMotorControllerFinishedHoming()
 }
 void JointDrive::OnMotorControllerFinishedSwitching(SwitchMotorPosition position)
 {
-    JointDriveAction * action = &actions[currentActionIndex];
-    action->isEmpty = true;
-    action->isWorking = false;
+    if (currentViewType == VT_PORTS)
+    {
+        portsView.SwitchingFinished();
+    }
 }
-void JointDrive::OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceLeft)
+void JointDrive::OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceGone, Direction direction)
 {
-    JointDriveAction * action = &actions[currentActionIndex];
-
-    this->GetPort(portIndex)->filamentPosition = action->distance - distanceLeft;
+    PortState * port = this->GetPort(portIndex);
+    if (direction == D_FORWARD)
+    {
+        port->filamentPosition += distanceGone;
+    }
+    else
+    {
+        port->filamentPosition = (uint32_t)max(0L, (long)port->filamentPosition - (long)distanceGone);
+    }
 }
 void JointDrive::OnMotorControllerFinishedMoving(uint16_t portIndex)
 {
@@ -447,6 +410,7 @@ void JointDrive::OnMotorControllerFinishedMoving(uint16_t portIndex)
     if (port->status == PS_LOADING)
     {
         port->status = PS_LOADED;
+        port->filamentPosition = this->GetLoadedDistance();
     }
     else if (port->status == PS_UNLOADING)
     {
@@ -457,10 +421,12 @@ void JointDrive::OnMotorControllerFinishedMoving(uint16_t portIndex)
     {
         port->status = PS_FEEDING;
         port->filamentPosition = this->GetLoadedDistance() + this->GetFeedingDistance();
+        motorController.SwitchMotorToPosition(SMP_CENTER);
     }
     else if (port->status == PS_PULLING)
     {
         port->status = PS_LOADED;
+        port->filamentPosition = this->GetLoadedDistance();
     }
     storage.SetState(state);
 
@@ -517,7 +483,6 @@ void JointDrive::OnRotaryEncoderPressed()
             settingsView.ActionBtnClick();
             break;
         case VT_PORTS:
-
             portsView.ActionBtnClick();
             break;
         case VT_PORT_ADJUST:

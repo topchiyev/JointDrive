@@ -10,15 +10,17 @@
 // 360 DEGREE = 1600 MICROSTEPS
 
 #define SWITCH_STEPS_PER_MM         80
-#define SWITCH_RIGHT_POS           90 * SWITCH_STEPS_PER_MM
-#define SWITCH_CENTER_POS          45 * SWITCH_STEPS_PER_MM 
+#define SWITCH_VREF 800
+#define SWITCH_RIGHT_POS           88 * SWITCH_STEPS_PER_MM
+#define SWITCH_CENTER_POS          44 * SWITCH_STEPS_PER_MM 
 #define SWITCH_LEFT_POS            0
-#define SWITCH_HOMING_EXTRA_STEP    10 * SWITCH_STEPS_PER_MM
+#define SWITCH_HOMING_EXTRA_STEP    20 * SWITCH_STEPS_PER_MM
 #define SWITCH_SPEED                40 * SWITCH_STEPS_PER_MM
 #define SWITCH_ACCELERATION         1000000000
 
-#define FILAMENT_STEPS_PER_MM       80
-#define FILAMENT_SPEED              100 * FILAMENT_STEPS_PER_MM 
+#define FILAMENT_STEPS_PER_MM       141
+#define FILAMENT_VREF 1700
+#define FILAMENT_SPEED              140 * FILAMENT_STEPS_PER_MM 
 #define FILAMENT_ACCELERATION       1000000000
 
 #define BAUD_RATE 256000
@@ -29,7 +31,6 @@ HardwareSerial Serial4(USART4);
 
 #define R_SENSE 0.11f
 #define STALL_VALUE 50 // [0..255]
-#define VREF 800
 #define SPEED_SWITCH 3000
 #define SPEED_FILAMENT 2000
 #define ACCELRATION 1000000000
@@ -50,6 +51,7 @@ bool switchStopped = true;
 TMC2209Stepper driverFilament1(&Serial4, R_SENSE, 2);
 AccelStepper stepperFilament1(AccelStepper::DRIVER, MOTOR_FILAMENT1_STEP, MOTOR_FILAMENT1_DIR); 
 bool filament1Stopped = true;
+long filament1LastPos = 0;
 
 #define MOTOR_FILAMENT2_EN PB1
 #define MOTOR_FILAMENT2_STEP PB0
@@ -57,6 +59,7 @@ bool filament1Stopped = true;
 TMC2209Stepper driverFilament2(&Serial4, R_SENSE, 1);
 AccelStepper stepperFilament2(AccelStepper::DRIVER, MOTOR_FILAMENT2_STEP, MOTOR_FILAMENT2_DIR);
 bool filament2Stopped = true;
+long filament2LastPos = 0;
 
 #define MOTOR_FILAMENT3_EN PD1
 #define MOTOR_FILAMENT3_STEP PB3
@@ -64,11 +67,11 @@ bool filament2Stopped = true;
 TMC2209Stepper driverFilament3(&Serial4, R_SENSE, 3);
 AccelStepper stepperFilament3(AccelStepper::DRIVER, MOTOR_FILAMENT3_STEP, MOTOR_FILAMENT3_DIR);
 bool filament3Stopped = true;
+long filament3LastPos = 0;
 
 #define MOTOR_UPDATE_INTERVAL_MS 400
 STM32Timer motorTimer(TIM1);
 
-bool isHoming = false;
 uint32_t sgResult = 0;
 
 using namespace TMC2209_n;
@@ -114,7 +117,7 @@ void MotorController::Begin(MotorControllerDelegate * delegate)
     driverSwitch.begin();
     driverSwitch.toff(4);
     driverSwitch.blank_time(24);
-    driverSwitch.rms_current(VREF); // mA
+    driverSwitch.rms_current(SWITCH_VREF); // mA
     driverSwitch.microsteps(MICROSTEPS);
     driverSwitch.TCOOLTHRS(0xFFFFF); // 20bit max
     driverSwitch.semin(5);
@@ -126,12 +129,12 @@ void MotorController::Begin(MotorControllerDelegate * delegate)
     stepperSwitch.setAcceleration(ACCELRATION); // 2000mm/s^2
     stepperSwitch.setEnablePin(MOTOR_SWITCH_EN);
     stepperSwitch.setPinsInverted(true, false, true);
-    stepperSwitch.enableOutputs();
+    stepperSwitch.disableOutputs();
 
     driverFilament1.begin();
     driverFilament1.toff(4);
     driverFilament1.blank_time(24);
-    driverFilament1.rms_current(VREF); // mA
+    driverFilament1.rms_current(FILAMENT_VREF); // mA
     driverFilament1.microsteps(MICROSTEPS);
     driverFilament1.TCOOLTHRS(0xFFFFF); // 20bit max
     driverFilament1.semin(5);
@@ -143,12 +146,12 @@ void MotorController::Begin(MotorControllerDelegate * delegate)
     stepperFilament1.setAcceleration(ACCELRATION); // 2000mm/s^2
     stepperFilament1.setEnablePin(MOTOR_FILAMENT1_EN);
     stepperFilament1.setPinsInverted(false, false, true);
-    stepperFilament1.enableOutputs();
+    stepperFilament1.disableOutputs();
 
     driverFilament2.begin();
     driverFilament2.toff(4);
     driverFilament2.blank_time(24);
-    driverFilament2.rms_current(VREF); // mA
+    driverFilament2.rms_current(FILAMENT_VREF); // mA
     driverFilament2.microsteps(MICROSTEPS);
     driverFilament2.TCOOLTHRS(0xFFFFF); // 20bit max
     driverFilament2.semin(5);
@@ -160,12 +163,12 @@ void MotorController::Begin(MotorControllerDelegate * delegate)
     stepperFilament2.setAcceleration(ACCELRATION); // 2000mm/s^2
     stepperFilament2.setEnablePin(MOTOR_FILAMENT2_EN);
     stepperFilament2.setPinsInverted(false, false, true);
-    stepperFilament2.enableOutputs();
+    stepperFilament2.disableOutputs();
 
     driverFilament3.begin();
     driverFilament3.toff(4);
     driverFilament3.blank_time(24);
-    driverFilament3.rms_current(VREF); // mA
+    driverFilament3.rms_current(FILAMENT_VREF); // mA
     driverFilament3.microsteps(MICROSTEPS);
     driverFilament3.TCOOLTHRS(0xFFFFF); // 20bit max
     driverFilament3.semin(5);
@@ -177,7 +180,7 @@ void MotorController::Begin(MotorControllerDelegate * delegate)
     stepperFilament3.setAcceleration(ACCELRATION); // 2000mm/s^2
     stepperFilament3.setEnablePin(MOTOR_FILAMENT3_EN);
     stepperFilament3.setPinsInverted(false, false, true);
-    stepperFilament3.enableOutputs();
+    stepperFilament3.disableOutputs();
 
     motorTimer.attachInterruptInterval(MOTOR_UPDATE_INTERVAL_MS, UpdateMotors);
 }
@@ -231,6 +234,7 @@ void MotorController::Home()
         return;
 
     isHoming = true;
+    stepperSwitch.enableOutputs();
     stepperSwitch.setCurrentPosition(0);
     stepperSwitch.moveTo(SWITCH_RIGHT_POS + SWITCH_HOMING_EXTRA_STEP);
 
@@ -274,17 +278,20 @@ void MotorController::SwitchMotorToPosition(SwitchMotorPosition position)
     }
 
     switchStopped = false;
+    stepperSwitch.enableOutputs();
     stepperSwitch.moveTo(destPos);
 
     this->isIdle = false;
 }
 
-void MotorController::MoveFilament(uint16_t portIndex, Direction direction, uint16_t distance)
+void MotorController::MoveFilament(uint16_t portIndex, Direction direction, uint32_t distance)
 {
     if (!this->isIdle)
         return;
         
     this->portIndex = portIndex;
+    this->direction = direction;
+    this->distance = distance;
 
     SwitchMotorPosition destPos = PortIndexToSwitchPosition(this->portIndex);
     if (switchPosition != destPos)
@@ -293,24 +300,30 @@ void MotorController::MoveFilament(uint16_t portIndex, Direction direction, uint
     uint8_t motorIndex = PortIndexToMotorIndex(portIndex);
     bool dir = PortIndexToDirection(this->portIndex, direction);
 
-    long move = (dir ? 1 : -1) * distance * FILAMENT_STEPS_PER_MM;
+    long move = (dir ? 1L : -1L) * distance * FILAMENT_STEPS_PER_MM;
 
     switch (motorIndex)
     {
         case 1:
             this->isIdle = false;
             filament1Stopped = false;
-            stepperFilament1.moveTo(move);
+            filament1LastPos = stepperFilament1.currentPosition();
+            stepperFilament1.enableOutputs();
+            stepperFilament1.move(move);
             break;
         case 2:
             this->isIdle = false;
             filament2Stopped = false;
-            stepperFilament2.moveTo(move);
+            filament2LastPos = stepperFilament2.currentPosition();
+            stepperFilament2.enableOutputs();
+            stepperFilament2.move(move);
             break;
         case 3:
             this->isIdle = false;
             filament3Stopped = false;
-            stepperFilament3.moveTo(move);
+            filament3LastPos = stepperFilament3.currentPosition();
+            stepperFilament3.enableOutputs();
+            stepperFilament3.move(move);
             break;
     }
 }
@@ -324,6 +337,16 @@ void MotorController::Stop()
     stepperFilament1.stop();
     stepperFilament2.stop();
     stepperFilament3.stop();
+
+    stepperSwitch.disableOutputs();
+    stepperFilament1.disableOutputs();
+    stepperFilament2.disableOutputs();
+    stepperFilament3.disableOutputs();
+
+    switchStopped = true;
+    filament1Stopped = true;
+    filament2Stopped = true;
+    filament3Stopped = true;
     
     this->isIdle = true;
 }
@@ -362,48 +385,69 @@ void MotorController::NormalUpdate(uint32_t time)
             {
                 switchPosition = SMP_CENTER;
             }
-            delegate->OnMotorControllerFinishedSwitching(switchPosition);
             this->isIdle = true;
+            stepperSwitch.disableOutputs();
+            delegate->OnMotorControllerFinishedSwitching(switchPosition);
         }
     }
     else if (!filament1Stopped)
     {
-        if (stepperFilament1.isRunning())
+        long pos = stepperFilament1.currentPosition();
+        long distGone = (pos - filament1LastPos) / FILAMENT_STEPS_PER_MM;
+        long absDistGone = (long)abs(distGone);
+        if (absDistGone > 0L)
         {
-            uint32_t dist = (uint32_t)abs(stepperFilament1.distanceToGo()) / FILAMENT_STEPS_PER_MM;
-            delegate->OnMotorControllerMoved(portIndex, dist);
+            filament1LastPos = pos;
+            delegate->OnMotorControllerMoved(this->portIndex, (uint32_t)absDistGone, direction);
         }
-        else
+        if (!stepperFilament1.isRunning())
         {
             filament1Stopped = true;
-            delegate->OnMotorControllerFinishedMoving(portIndex);
             this->isIdle = true;
+            stepperFilament1.disableOutputs();
+            delegate->OnMotorControllerFinishedMoving(this->portIndex);
         }
     }
     else if (!filament2Stopped)
     {
-        if (!stepperFilament2.isRunning())
+        if (stepperFilament2.isRunning())
         {
-            delegate->OnMotorControllerMoved(portIndex, stepperFilament2.distanceToGo());
+            long pos = stepperFilament2.currentPosition();
+            long distGone = (pos - filament2LastPos) / FILAMENT_STEPS_PER_MM;
+            uint32_t absDistGone = (uint32_t)abs(distGone);
+            if (absDistGone > 0)
+            {
+                filament2LastPos = pos;
+                delegate->OnMotorControllerMoved(this->portIndex, absDistGone, direction);
+            }
         }
         else
         {
             filament2Stopped = true;
-            delegate->OnMotorControllerFinishedMoving(portIndex);
             this->isIdle = true;
+            stepperFilament2.disableOutputs();
+            delegate->OnMotorControllerFinishedMoving(this->portIndex);
         }
     }
     else if (!filament3Stopped)
     {
-        if (!stepperFilament3.isRunning())
+        if (stepperFilament3.isRunning())
         {
-            delegate->OnMotorControllerMoved(portIndex, stepperFilament3.distanceToGo());
+            long pos = stepperFilament3.currentPosition();
+            long distGone = (pos - filament3LastPos) / FILAMENT_STEPS_PER_MM;
+            uint32_t absDistGone = (uint32_t)abs(distGone);
+            if (absDistGone > 0)
+            {
+                filament3LastPos = pos;
+                delegate->OnMotorControllerMoved(this->portIndex, absDistGone, direction);
+            }
         }
         else
         {
             filament3Stopped = true;
-            delegate->OnMotorControllerFinishedMoving(portIndex);
             this->isIdle = true;
+            stepperFilament2.disableOutputs();
+            delegate->OnMotorControllerFinishedMoving(this->portIndex);
         }
     }
 }
@@ -424,7 +468,7 @@ void MotorController::HomingUpdate(uint32_t time)
     {
         if (stepperSwitch.distanceToGo() == 0)
         {
-            stepperSwitch.stop();
+            stepperSwitch.disableOutputs();
             switchPosition = SMP_RIGHT;
             isHoming = false;
             this->isIdle = true;

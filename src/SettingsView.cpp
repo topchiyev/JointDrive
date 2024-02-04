@@ -1,10 +1,10 @@
 #include "SettingsView.h"
 #include "img/img-back-btn-selected.h"
 #include "img/img-back-btn-unselected.h"
+#include "img/img-free-btn-selected.h"
+#include "img/img-free-btn-unselected.h"
 #include "img/img-reset-btn-selected.h"
 #include "img/img-reset-btn-unselected.h"
-#include "img/img-save-btn-selected.h"
-#include "img/img-save-btn-unselected.h"
 
 void SettingsView::Begin(JointDrive * jointDrive)
 {
@@ -35,15 +35,15 @@ void SettingsView::Draw(Canvas * canvas)
     else
         canvas->AddImage(1, 37, &IMG_BACK_BTN_UNSELECTED);
         
+    if (this->selectedButton == SVB_FREE)
+        canvas->AddImage(26, 37, &IMG_FREE_BTN_SELECTED);
+    else
+        canvas->AddImage(26, 37, &IMG_FREE_BTN_UNSELECTED);
+    
     if (this->selectedButton == SVB_RESET)
-        canvas->AddImage(31, 37, &IMG_RESET_BTN_SELECTED);
+        canvas->AddImage(51, 37, &IMG_RESET_BTN_SELECTED);
     else
-        canvas->AddImage(31, 37, &IMG_RESET_BTN_UNSELECTED);
-        
-    if (this->selectedButton == SVB_SAVE)
-        canvas->AddImage(61, 37, &IMG_SAVE_BTN_SELECTED);
-    else
-        canvas->AddImage(61, 37, &IMG_SAVE_BTN_UNSELECTED);
+        canvas->AddImage(51, 37, &IMG_RESET_BTN_UNSELECTED);
 }
 
 void SettingsView::LeftBtnClick()
@@ -64,7 +64,7 @@ void SettingsView::RightBtnClick()
     {
         this->distance = this->distance + 1;
     }
-    else if (!this->isInput && this->selectedButton < SVB_SAVE)
+    else if (!this->isInput && this->selectedButton < SVB_RESET)
     {
         this->selectedButton = (SettingsViewButton)(this->selectedButton + 1);
     }
@@ -81,14 +81,15 @@ void SettingsView::ActionBtnClick()
     }       
     else if (this->selectedButton == SVB_BACK)
     {
+        this->jointDrive->SetFeedingDistance(this->distance);
         this->jointDrive->GoToMainView();
+    }
+    else if (this->selectedButton == SVB_FREE)
+    {
+        this->jointDrive->SwitchToFreePosition();
     }
     else if (this->selectedButton == SVB_RESET)
     {
-        this->distance = this->jointDrive->GetFeedingDistance();
-    }
-    else if (this->selectedButton == SVB_SAVE)
-    {
-        this->jointDrive->SetFeedingDistance(this->distance);
+        this->jointDrive->ResetState();
     }
 }
