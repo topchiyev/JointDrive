@@ -388,9 +388,9 @@ void JointDrive::OnMotorControllerFinishedHoming()
 void JointDrive::OnMotorControllerFinishedSwitching(SwitchMotorPosition position)
 {
     if (currentViewType == VT_PORTS)
-    {
         portsView.SwitchingFinished();
-    }
+    else if (currentViewType == VT_PORT_ADJUST)
+        portAdjustView.SwitchingFinished();
 }
 void JointDrive::OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceGone, Direction direction)
 {

@@ -18,6 +18,7 @@ class PortAdjustView
         void LeftBtnClick();
         void RightBtnClick();
         void ActionBtnClick();
+        void SwitchingFinished();
 
     private:
         JointDrive * jointDrive;

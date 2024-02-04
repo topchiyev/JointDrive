@@ -181,11 +181,11 @@ void PortsView::Draw(Canvas * canvas)
     if (port->status == PS_LOADING)
         status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetLoadedDistance());
     else if (port->status == PS_UNLOADING)
-        status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetLoadedDistance());
+        status = " " + String(port->filamentPosition) + "/" + String(0);
     else if (port->status == PS_PUSHING)
-        status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetFeedingDistance());
+        status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetLoadedDistance() + this->jointDrive->GetFeedingDistance());
     else if (port->status == PS_PULLING)
-        status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetFeedingDistance());
+        status = " " + String(port->filamentPosition) + "/" + String(this->jointDrive->GetLoadedDistance());
     else
         status = "STATS:" + status;
         

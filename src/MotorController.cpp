@@ -410,18 +410,15 @@ void MotorController::NormalUpdate(uint32_t time)
     }
     else if (!filament2Stopped)
     {
-        if (stepperFilament2.isRunning())
+        long pos = stepperFilament2.currentPosition();
+        long distGone = (pos - filament2LastPos) / FILAMENT_STEPS_PER_MM;
+        long absDistGone = (long)abs(distGone);
+        if (absDistGone > 0L)
         {
-            long pos = stepperFilament2.currentPosition();
-            long distGone = (pos - filament2LastPos) / FILAMENT_STEPS_PER_MM;
-            uint32_t absDistGone = (uint32_t)abs(distGone);
-            if (absDistGone > 0)
-            {
-                filament2LastPos = pos;
-                delegate->OnMotorControllerMoved(this->portIndex, absDistGone, direction);
-            }
+            filament2LastPos = pos;
+            delegate->OnMotorControllerMoved(this->portIndex, (uint32_t)absDistGone, direction);
         }
-        else
+        if (!stepperFilament2.isRunning())
         {
             filament2Stopped = true;
             this->isIdle = true;
@@ -431,22 +428,19 @@ void MotorController::NormalUpdate(uint32_t time)
     }
     else if (!filament3Stopped)
     {
-        if (stepperFilament3.isRunning())
+        long pos = stepperFilament3.currentPosition();
+        long distGone = (pos - filament3LastPos) / FILAMENT_STEPS_PER_MM;
+        long absDistGone = (long)abs(distGone);
+        if (absDistGone > 0L)
         {
-            long pos = stepperFilament3.currentPosition();
-            long distGone = (pos - filament3LastPos) / FILAMENT_STEPS_PER_MM;
-            uint32_t absDistGone = (uint32_t)abs(distGone);
-            if (absDistGone > 0)
-            {
-                filament3LastPos = pos;
-                delegate->OnMotorControllerMoved(this->portIndex, absDistGone, direction);
-            }
+            filament3LastPos = pos;
+            delegate->OnMotorControllerMoved(this->portIndex, (uint32_t)absDistGone, direction);
         }
-        else
+        if (!stepperFilament3.isRunning())
         {
             filament3Stopped = true;
             this->isIdle = true;
-            stepperFilament2.disableOutputs();
+            stepperFilament3.disableOutputs();
             delegate->OnMotorControllerFinishedMoving(this->portIndex);
         }
     }

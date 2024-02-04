@@ -3,6 +3,8 @@
 #include "img/img-back-btn-selected.h"
 #include "img/img-back-btn-unselected.h"
 
+bool isPortSwitchingFinished = true;
+
 void PortAdjustView::Begin(JointDrive * jointDrive, uint16_t portIndex)
 {
     this->jointDrive = jointDrive;
@@ -42,7 +44,7 @@ void PortAdjustView::Draw(Canvas * canvas)
 
 void PortAdjustView::LeftBtnClick()
 {
-    if (this->isInput && this->selectedButton == PAVB_POSITION)
+    if (this->isInput && this->selectedButton == PAVB_POSITION && isPortSwitchingFinished)
         this->jointDrive->AdjustPort(this->portIndex, D_BACKWARD);
     else if (!this->isInput && this->selectedButton > PAVB_BACK)
         this->selectedButton = (PortAdjustViewButton)(this->selectedButton - 1);
@@ -50,7 +52,7 @@ void PortAdjustView::LeftBtnClick()
 
 void PortAdjustView::RightBtnClick()
 {
-    if (this->isInput && this->selectedButton == PAVB_POSITION)
+    if (this->isInput && this->selectedButton == PAVB_POSITION && isPortSwitchingFinished)
         this->jointDrive->AdjustPort(this->portIndex, D_FORWARD);
     else if (!this->isInput && this->selectedButton < PAVB_POSITION)
         this->selectedButton = (PortAdjustViewButton)(this->selectedButton + 1);
@@ -59,7 +61,21 @@ void PortAdjustView::RightBtnClick()
 void PortAdjustView::ActionBtnClick()
 {
     if (this->selectedButton == PAVB_POSITION)
-        this->isInput = !this->isInput;   
+    {
+        this->isInput = !this->isInput;
+        if (this->isInput)
+        {
+            isPortSwitchingFinished = false;
+            jointDrive->SwitchToPositionForPort(this->portIndex);
+        }
+    }
     else if (this->selectedButton == PAVB_BACK)
+    {
         this->jointDrive->GoToPortsView(this->portIndex);
+    }
+}
+
+void PortAdjustView::SwitchingFinished()
+{
+    isPortSwitchingFinished = true;
 }
