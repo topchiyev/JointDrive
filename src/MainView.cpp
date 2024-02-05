@@ -124,9 +124,17 @@ void MainView::Draw(Canvas * canvas)
         canvas->AddText(0, 27, 84, this->GetActivity(), C_BLACK, FS_X1, A_CENTER);
 
         canvas->AddRect((84 - 14) / 2, 48 - 8, 14, 8, C_BLACK);
-        if (!jointDrive->IsSwitchPressed()) // || jointDrive->IsSwitchPulse())
+        canvas->AddRect((84 - 10) / 2, 48 - 6, 10, 4, C_WHITE);
+        if (jointDrive->IsSwitchPressed())
         {
-            canvas->AddRect((84 - 10) / 2, 48 - 6, 10, 4, C_WHITE);
+            if (jointDrive->IsSwitchPulse())
+            {
+                canvas->AddRect((84 - 10) / 2, 48 - 6, 5, 4, C_BLACK);
+            }
+            else
+            {
+                canvas->AddRect(((84 - 10) / 2) + 5, 48 - 6, 5, 4, C_BLACK);
+            }
         }
     }
 }

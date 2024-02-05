@@ -1,12 +1,11 @@
 #include "SwitchInputController.h"
 
 #define SWITCH_INPUT_PIN PC15
-#define SWITCH_PULSE_LEN 500L // milliseconds
+#define SWITCH_PULSE_LEN 600L // milliseconds
+#define SWITCH_PULSE_ON_LEN 400L // milliseconds
+#define SWITCH_PULSE_OFF_LEN 200L // milliseconds
 #define SWITCH_COOMAND_NONE 0
 #define SWITCH_COMMAND_FEED 10 // pulses
-
-uint32_t pulseOffTime = 0;
-bool isPulse = false;
 
 void SwitchInputController::Begin(SwitchInputControllerDelegate * delegate)
 {
@@ -16,21 +15,43 @@ void SwitchInputController::Begin(SwitchInputControllerDelegate * delegate)
 
 void SwitchInputController::Update(uint32_t time)
 {
-    if (isPulse && time >= pulseOffTime)
-    {
-        isPulse = false;
-    }
-
-    int val = digitalRead(SWITCH_INPUT_PIN);
-    bool pressed = val == HIGH;
-
-    if (pressed != this->isPressed && time > this->stateChangedOn + 20)
+    bool pressed = digitalRead(SWITCH_INPUT_PIN) == LOW;
+    if (this->isPressed != pressed && time > this->switchChangedOn + 20)
     {
         this->isPressed = pressed;
-        this->stateChangedOn = time;
+        this->switchChangedOn = time;
+
+        this->isPulse = false;
+        this->pulseChangesOn = time + SWITCH_PULSE_ON_LEN;
     }
 
-    if (!this->isPressed && this->command != SWITCH_COOMAND_NONE)
+    if (this->pulseChangesOn != 0 && time > this->pulseChangesOn)
+    {
+        this->isPulse = !this->isPulse;
+        if (this->isPulse)
+            this->pulseChangesOn = time + (SWITCH_PULSE_ON_LEN);
+        else
+            this->pulseChangesOn = time + (SWITCH_PULSE_OFF_LEN);
+    }
+
+    if (this->isPressed)
+    {
+        
+        if (this->isPressed && this->command == SWITCH_COOMAND_NONE && time > this->switchChangedOn + SWITCH_COMMAND_FEED * SWITCH_PULSE_LEN)
+        {
+            this->command = SWITCH_COMMAND_FEED;
+        }
+        else if (this->isPressed && this->command == SWITCH_COMMAND_FEED && time >= this->switchChangedOn + (SWITCH_COMMAND_FEED * SWITCH_PULSE_LEN) + SWITCH_PULSE_LEN)
+        {
+            long portTime = time - (this->switchChangedOn + (SWITCH_COMMAND_FEED * SWITCH_PULSE_LEN));
+            long exPortTime = portTime;
+            long dec = exPortTime % SWITCH_PULSE_LEN;
+            long intPortTime = portTime - dec;
+            long pulses = intPortTime / SWITCH_PULSE_LEN;
+            this->portIndex = (uint32_t)pulses;
+        }
+    }
+    else if (this->command != SWITCH_COOMAND_NONE)
     {
         if (this->command == SWITCH_COMMAND_FEED && this->portIndex > 0 && this->portIndex <= 5)
         {
@@ -38,21 +59,8 @@ void SwitchInputController::Update(uint32_t time)
         }
         this->command = SWITCH_COOMAND_NONE;
         this->portIndex = 0;
-    }
-    else if (this->command == SWITCH_COOMAND_NONE && this->isPressed && time > this->stateChangedOn + SWITCH_COMMAND_FEED * SWITCH_PULSE_LEN)
-    {
-        this->command = SWITCH_COMMAND_FEED;
-    }
-    else if (this->command == SWITCH_COMMAND_FEED && this->isPressed && time > this->stateChangedOn + (SWITCH_COMMAND_FEED * SWITCH_PULSE_LEN) + SWITCH_PULSE_LEN)
-    {
-        long portTime = time - (this->stateChangedOn + (SWITCH_COMMAND_FEED * SWITCH_PULSE_LEN));
-        long exPortTime = portTime;
-        long dec = exPortTime % SWITCH_PULSE_LEN;
-        long intPortTime = portTime - dec;
-        long pulses = intPortTime / SWITCH_PULSE_LEN;
-        this->portIndex = (uint32_t)pulses;
-        isPulse = true;
-        pulseOffTime = time + 300;
+        this->isPulse = false;
+        this->pulseChangesOn = 0;
     }
 }
 

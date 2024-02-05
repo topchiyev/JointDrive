@@ -20,7 +20,9 @@ class SwitchInputController
     private:
         SwitchInputControllerDelegate * delegate = nullptr;
         bool isPressed = false;
-        uint32_t stateChangedOn = 0;
+        uint32_t switchChangedOn = 0;
+        uint32_t pulseChangesOn = 0;
+        bool isPulse = false;
         uint8_t command = 0;
         uint8_t portIndex = 0;
 };
