@@ -6,7 +6,7 @@
 class SwitchInputControllerDelegate
 {
     public:
-        void OnSwitchFilamentChageRequest(uint8_t portIndex) { }
+        virtual void OnSwitchFilamentChageRequest(uint16_t portIndex) { }
 };
 
 class SwitchInputController
@@ -24,7 +24,7 @@ class SwitchInputController
         uint32_t pulseChangesOn = 0;
         bool isPulse = false;
         uint8_t command = 0;
-        uint8_t portIndex = 0;
+        uint16_t portIndex = 0;
 };
 
 #endif

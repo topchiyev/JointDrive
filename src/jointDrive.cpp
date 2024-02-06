@@ -25,6 +25,9 @@ ViewType currentViewType = VT_NONE;
 
 const uint32_t blinkInterval = 500;
 uint32_t blinkChangeTime = 0;
+bool isSwitchingPorts = false;
+uint8_t switchingFromPort = 0;
+uint8_t switchingToPort = 0;
 
 void JointDrive::Begin()
 {
@@ -120,8 +123,8 @@ bool JointDrive::IsFeeding()
 {
     for (size_t i = 0; i < 5; i++)
     {
-        PortState port = state.ports[i];
-        if (port.status == PS_FEEDING || port.status == PS_PUSHING || port.status == PS_PULLING)
+        PortState * port = GetPort(i);
+        if (port->status == PS_FEEDING || port->status == PS_PUSHING || port->status == PS_PULLING)
             return true;
     }
     
@@ -246,6 +249,11 @@ void JointDrive::SwitchToPositionForPort(uint16_t portIndex)
 void JointDrive::SwitchToFreePosition()
 {
     motorController.SwitchMotorToPosition(SMP_CENTER);
+}
+
+bool JointDrive::IsSwitching()
+{
+    return isSwitchingPorts;
 }
 
 void JointDrive::LoadPort(uint16_t portIndex)
@@ -387,6 +395,16 @@ void JointDrive::OnMotorControllerFinishedHoming()
 {
     if (this->isHoming)
         this->isHoming = false;
+
+    for (uint8_t i = 0; i < 5; i++)
+    {
+        PortState * port = GetPort(i+1);
+        if (port->status == PS_FEEDING)
+        {
+            SwitchToFreePosition();
+            break;
+        }
+    }
 }
 void JointDrive::OnMotorControllerFinishedSwitching(SwitchMotorPosition position)
 {
@@ -394,6 +412,32 @@ void JointDrive::OnMotorControllerFinishedSwitching(SwitchMotorPosition position
         portsView.SwitchingFinished();
     else if (currentViewType == VT_PORT_ADJUST)
         portAdjustView.SwitchingFinished();
+
+    if (isSwitchingPorts)
+    {
+        if (switchingFromPort == 0)
+        {
+            PushPort(switchingToPort);
+            isSwitchingPorts = false;
+            switchingToPort = 0;
+        }
+        else
+        {
+            SwitchMotorPosition fromPos = motorController.PortIndexToSwitchPosition(switchingFromPort);
+            SwitchMotorPosition toPos = motorController.PortIndexToSwitchPosition(switchingToPort);
+            if (fromPos == position)
+            {
+                PullPort(switchingFromPort);
+            }
+            else
+            {
+                PushPort(switchingToPort);
+                isSwitchingPorts = false;
+                switchingFromPort = 0;
+                switchingToPort = 0;
+            }
+        }
+    }
 }
 void JointDrive::OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceGone, Direction direction)
 {
@@ -410,6 +454,9 @@ void JointDrive::OnMotorControllerMoved(uint16_t portIndex, uint32_t distanceGon
 void JointDrive::OnMotorControllerFinishedMoving(uint16_t portIndex)
 {
     PortState * port = this->GetPort(portIndex);
+
+    PortStatus oldStatus = port->status;
+
     if (port->status == PS_LOADING)
     {
         port->status = PS_LOADED;
@@ -436,6 +483,29 @@ void JointDrive::OnMotorControllerFinishedMoving(uint16_t portIndex)
     if (currentViewType == VT_PORTS)
     {
         portsView.PortChanged();
+    }
+
+    if (isSwitchingPorts && oldStatus == PS_PULLING)
+    {
+        bool switchingNeeded = false;
+        if (switchingFromPort != 0)
+        {
+            SwitchMotorPosition fromPos = motorController.PortIndexToSwitchPosition(switchingFromPort);
+            SwitchMotorPosition toPos = motorController.PortIndexToSwitchPosition(switchingToPort);
+            if (fromPos != toPos)
+                switchingNeeded = true;
+        }
+        if (switchingNeeded)
+        {
+            this->SwitchToPositionForPort(switchingToPort);
+        }
+        else
+        {
+            this->PushPort(switchingToPort);
+            isSwitchingPorts = false;
+            switchingToPort = 0;
+            switchingFromPort = 0;
+        }
     }
 }
 
@@ -494,16 +564,38 @@ void JointDrive::OnRotaryEncoderPressed()
     }
 }
 
-void OnSwitchFilamentChageRequest(uint8_t portIndex)
+void JointDrive::OnSwitchFilamentChageRequest(uint16_t portIndex)
 {
+    PortState * toPort = this->GetPort(portIndex);
+    if (toPort == nullptr)
+        return;
+    if (toPort->status != PS_LOADED)
+        return;
 
+    PortState * fromPort = nullptr;
+    for (uint8_t i = 0; i < 5; i++)
+    {
+        PortState * p = this->GetPort(i);
+        if (p->status == PS_FEEDING)
+        {
+            fromPort = p;
+            break;
+        }
+    }
+
+    isSwitchingPorts = true;
+    switchingFromPort = fromPort == nullptr ? 0 : fromPort->index;
+    switchingToPort = portIndex;
+
+    if (fromPort != nullptr)
+        this->SwitchToPositionForPort(fromPort->index);
+    else
+        this->SwitchToPositionForPort(toPort->index);
 }
-
 bool JointDrive::IsSwitchPressed()
 {
     return switchInputController.IsPressed();
 }
-
 bool JointDrive::IsSwitchPulse()
 {
     return switchInputController.IsPulse();

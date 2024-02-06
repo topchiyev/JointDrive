@@ -143,8 +143,8 @@ String MainView::GetActivity()
 {
     if (jointDrive->isHoming)
     {
-        //return "HOMING";
-        return String(jointDrive->GetSgResult());
+        return "HOMING";
+        // return String(jointDrive->GetSgResult());
     }
     
     PortState * ports = this->jointDrive->GetState()->ports;
@@ -156,10 +156,17 @@ String MainView::GetActivity()
             return "FEEDING " + String(port.index);
         if (port.status == PS_PULLING)
             return "PULLING " + String(port.index);
+        if (port.status == PS_PUSHING)
+            return "PUSHING " + String(port.index);
         if (port.status == PS_LOADING)
             return "LOADING " + String(port.index);
         if (port.status == PS_UNLOADING)
             return "UNLOADING " + String(port.index);
+    }
+
+    if (jointDrive->IsSwitching())
+    {
+        return "SWITCHING";
     }
         
     return "IDLE";

@@ -40,6 +40,7 @@ class JointDrive:
 
         void SwitchToPositionForPort(uint16_t portIndex);
         void SwitchToFreePosition();
+        bool IsSwitching();
         void LoadPort(uint16_t portIndex);
         void UnloadPort(uint16_t portIndex);
         void PushPort(uint16_t portIndex);
@@ -56,7 +57,7 @@ class JointDrive:
         void OnRotaryEncoderDecreased();
         void OnRotaryEncoderPressed();
 
-        void OnSwitchFilamentChageRequest(uint8_t portIndex);
+        void OnSwitchFilamentChageRequest(uint16_t portIndex);
         bool IsSwitchPressed();
         bool IsSwitchPulse();
 

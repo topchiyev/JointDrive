@@ -3,7 +3,7 @@
 
 #include "JointDrive.h"
 
-const int HIDE_INFO_AFTER = 5000;
+const int HIDE_INFO_AFTER = 3000;
 
 class IntroView
 {   
