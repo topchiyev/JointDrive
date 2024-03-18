@@ -7,6 +7,7 @@
 #include "MotorController.h"
 #include "RotaryEncoderController.h"
 #include "SwitchInputController.h"
+#include "ServoArmController.h"
 
 class JointDrive:
     public MotorControllerDelegate,

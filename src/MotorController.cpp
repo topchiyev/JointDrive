@@ -10,6 +10,7 @@
 // 360 DEGREE = 1600 MICROSTEPS
 
 #define SWITCH_STEPS_PER_MM         80
+#define SWITCH_HOMING_VREF 800
 #define SWITCH_VREF 800
 #define SWITCH_RIGHT_POS           88 * SWITCH_STEPS_PER_MM
 #define SWITCH_CENTER_POS          44 * SWITCH_STEPS_PER_MM 
@@ -32,7 +33,7 @@ HardwareSerial Serial4(USART4);
 #define R_SENSE 0.11f
 #define STALL_VALUE 50 // [0..255]
 #define SPEED_SWITCH 3000
-#define SPEED_FILAMENT 2000
+#define SPEED_FILAMENT 5000
 #define ACCELRATION 1000000000
 #define MICROSTEPS 16
 
@@ -117,7 +118,7 @@ void MotorController::Begin(MotorControllerDelegate * delegate)
     driverSwitch.begin();
     driverSwitch.toff(4);
     driverSwitch.blank_time(24);
-    driverSwitch.rms_current(SWITCH_VREF); // mA
+    driverSwitch.rms_current(SWITCH_HOMING_VREF); // mA
     driverSwitch.microsteps(MICROSTEPS);
     driverSwitch.TCOOLTHRS(0xFFFFF); // 20bit max
     driverSwitch.semin(5);
@@ -465,6 +466,7 @@ void MotorController::HomingUpdate(uint32_t time)
             stepperSwitch.disableOutputs();
             switchPosition = SMP_RIGHT;
             isHoming = false;
+            driverSwitch.rms_current(SWITCH_VREF); 
             this->isIdle = true;
             this->delegate->OnMotorControllerFinishedHoming();
         }

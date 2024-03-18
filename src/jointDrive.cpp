@@ -15,6 +15,7 @@ Canvas canvas;
 MotorController motorController;
 RotaryEncoderController rotaryInputController;
 SwitchInputController switchInputController;
+ServoArmController servoArmController;
 
 IntroView introView;
 MainView mainView;
@@ -36,6 +37,7 @@ void JointDrive::Begin()
     motorController.Begin(this);
     rotaryInputController.Begin(PD0, PD2, PD3, this);
     switchInputController.Begin(this);
+    servoArmController.Begin();
 
     state = storage.GetState();
     if (!state.isInitialized)
@@ -130,8 +132,6 @@ bool JointDrive::IsFeeding()
     
     return false;
 }
-
-void(* resetFunc) (void) = 0;
 
 void JointDrive::ResetState()
 {
@@ -359,6 +359,8 @@ void JointDrive::PullPort(uint16_t portIndex)
     
     if (currentViewType == VT_PORTS)
         portsView.PortChanged();
+
+    servoArmController.SetReady();
         
     uint32_t dist = this->GetFeedingDistance();
     motorController.MoveFilament(portIndex, D_BACKWARD, dist);
@@ -475,6 +477,7 @@ void JointDrive::OnMotorControllerFinishedMoving(uint16_t portIndex)
     }
     else if (port->status == PS_PULLING)
     {
+        servoArmController.SetFree();
         port->status = PS_LOADED;
         port->filamentPosition = this->GetLoadedDistance();
     }
